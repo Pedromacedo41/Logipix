@@ -9,11 +9,12 @@ public class Logipix{
 	File input;
 	Cell[][] GameGrid;
 	int sizeX, sizeY;
-	ArrayList<LinkedList<Cell>> brokenLines;
+	ArrayList<ArrayList<Cell>> brokenLines;
 
 	public static void main(String[] args) throws FileNotFoundException {
 		Logipix logipix = new Logipix();
 		logipix.initialize("InputFiles/LogiX.txt");
+		logipix.print();
 		logipix.example();
 		logipix.print();
 	}
@@ -52,62 +53,78 @@ public class Logipix{
 		   	System.out.print("\n");
 
 	    for (int i=0;i<sizeY;i++) {
-	    	System.out.print("|");
+	    	int[] aux = new int[sizeX];
+	    	System.out.print("| ");
 		   	for (int j=0;j<sizeX; j++) {
 		   		if(GameGrid[i][j].linked){
-		   			if(GameGrid[i][j].position==Position.UP){
-
-
+		   			if((GameGrid[i][j].pos1==Position.DOWN && GameGrid[i][j].pos2!=Position.RIGHT) 
+		   				|| (GameGrid[i][j].pos2==Position.DOWN && GameGrid[i][j].pos1!=Position.RIGHT)){
+		   				System.out.print(GameGrid[i][j].clue+ "# | ");
 		   			}
-		   			if(GameGrid[i][j].position==Position.DOWN){
-
-
+		   			if(GameGrid[i][j].pos1==Position.DOWN || GameGrid[i][j].pos2==Position.DOWN){
+		   				if(GameGrid[i][j].clue!=0) System.out.print(GameGrid[i][j].clue+ "# | ");	
+		   				else System.out.print(" # | ");
+		   				aux[j]=1;
 		   			}
-		   			if(GameGrid[i][j].position==Position.LEFT){
+		   			if(GameGrid[i][j].pos1==Position.RIGHT || GameGrid[i][j].pos2==Position.RIGHT){
+		   				if(GameGrid[i][j].clue!=0) System.out.print(GameGrid[i][j].clue+ "####");	
+		   				else System.out.print("#####");
 
-
+		   				if(GameGrid[i][j].pos1==Position.DOWN || GameGrid[i][j].pos2==Position.DOWN) aux[j]=1;
 		   			}
-		   			if(GameGrid[i][j].position==Position.RIGHT){
-
-		   				
+		   			if(GameGrid[i][j].clue==1){
+		   				System.out.print(GameGrid[i][j].clue+ "# | ");
 		   			}
 
 		   		}else{
-		   			if(GameGrid[i][j].clue!=0) System.out.print(" "+ GameGrid[i][j].clue+ "  |");	
-		   			else System.out.print("    |");
+		   			if(GameGrid[i][j].clue!=0) System.out.print(GameGrid[i][j].clue+ "  | ");	
+		   			else System.out.print("   | ");
 		   		}  		
 		   	}
 		   	System.out.print("\n");
 		   	System.out.print("+");
 		   	for (int j=0;j<sizeX; j++) {
-		 		System.out.print("----+");			
+		   		if(aux[j]==0) System.out.print("----+");	
+		   		else System.out.print("  # +");	
 		   	}
 		   	System.out.print("\n");
 		 }
     }
 
-    private addBrokenLine(LinkedList<Cell> line){
-    	Cell[] Line = (Cell[]) line.toArray();
-    	for (int i=0; i < (Line.length-1) ; i++) {
-    	    Line[i].linked = true;    		
-    		if(Line[i].x != Line[i+1].x){
-    			if(Line[i].x > Line[i+1].x) Line[i].position = Position.LEFT;
-    			else Line[i].position = Position.RIGHT;
+    private void addBrokenLine(ArrayList<Cell> line){
+    	for (int i=0; i < (line.size()-1) ; i++) {
+    	    line.get(i).linked = true;    		
+    		if(line.get(i).y != line.get(i+1).y){
+    			if(line.get(i).y > line.get(i+1).y){
+    				line.get(i).pos1 = Position.LEFT;
+    				line.get(i+1).pos2 = Position.RIGHT;
+    			} 
+    			else{
+    				line.get(i).pos1 = Position.RIGHT;
+    				line.get(i+1).pos2 = Position.LEFT;
+    			} 
     		}else{
-    			if(Line[i].y > Line[i+1].y) Line[i].position= Position.UP;
-    			else Line[i].position = Position.DOWN;
+    			if(line.get(i).x > line.get(i+1).x){
+    				line.get(i).pos1= Position.UP;
+    				line.get(i+1).pos2= Position.DOWN;
+    			} 
+    			else{
+    				line.get(i).pos1 = Position.DOWN;
+    				line.get(i+1).pos2 = Position.UP;
+    			} 
     		}
     	}
+    	line.get(line.size()-1).linked = true;
     }
 
     public void example(){
-    	LinkedList<Cell> a = new LinkedList<>();
+    	ArrayList<Cell> a = new ArrayList<>();
     	a.add(GameGrid[0][0]);
     	a.add(GameGrid[0][1]);
     	addBrokenLine(a);
     	brokenLines.add(a);
 
-    	LinkedList<Cell> b = new LinkedList<>();
+    	ArrayList<Cell> b = new ArrayList<>();
     	b.add(GameGrid[8][0]);
     	b.add(GameGrid[8][1]);
     	b.add(GameGrid[8][2]);
@@ -115,7 +132,7 @@ public class Logipix{
     	addBrokenLine(b);
     	brokenLines.add(b);
 
-    	LinkedList<Cell> c = new LinkedList<>();
+    	ArrayList<Cell> c = new ArrayList<>();
     	c.add(GameGrid[5][4]);
     	c.add(GameGrid[5][5]);
     	c.add(GameGrid[6][5]);
@@ -124,6 +141,12 @@ public class Logipix{
     	c.add(GameGrid[7][3]);
     	addBrokenLine(c);
     	brokenLines.add(c);
-    	print();
+
+    	ArrayList<Cell> d = new ArrayList<>();
+    	d.add(GameGrid[0][10]);
+    	addBrokenLine(d);
+    	brokenLines.add(d);
+
+
     }
 }
