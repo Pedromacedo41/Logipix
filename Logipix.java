@@ -3,7 +3,7 @@ import java.io.File;import java.io.File;
 import java.io.FileWriter;
 import java.io.FileNotFoundException; 
 import java.io.IOException;
-
+ //Oi
 public class Logipix{
 
 	File input;
