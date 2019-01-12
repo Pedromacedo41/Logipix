@@ -173,7 +173,14 @@ public class Logipix{
     	d.add(GameGrid[0][10]);
     	addBrokenLine(d);
     	brokenLines.add(d);
+    }
 
-
+    private boolean compareBrokenLines(ArrayList<Cell> a1, ArrayList<Cell> a2){
+    	for (int i=0; i < a1.size() ; i++ ) {
+    		if(a1.get(i).pos1!=a2.get(i).pos1){
+    			return false;
+    		}
+    	}
+    	return true;
     }
 }
