@@ -57,25 +57,52 @@ public class Logipix{
 	    	System.out.print("| ");
 		   	for (int j=0;j<sizeX; j++) {
 		   		if(GameGrid[i][j].linked){
-		   			if((GameGrid[i][j].pos1==Position.DOWN && GameGrid[i][j].pos2!=Position.RIGHT) 
-		   				|| (GameGrid[i][j].pos2==Position.DOWN && GameGrid[i][j].pos1!=Position.RIGHT)){
-		   				System.out.print(GameGrid[i][j].clue+ "# | ");
+		   			
+		   			//one voisin
+		   			if((GameGrid[i][j].pos1==Position.EMPTY || GameGrid[i][j].pos2==Position.EMPTY)) {
+		   				if(GameGrid[i][j].clue==1){
+		   					System.out.print(GameGrid[i][j].clue+ "X | ");
+		   				}else{
+		   					if(GameGrid[i][j].pos1==Position.LEFT || GameGrid[i][j].pos2==Position.LEFT)
+		   						System.out.print(GameGrid[i][j].clue+ "  | ");
+		   					if(GameGrid[i][j].pos1==Position.RIGHT || GameGrid[i][j].pos2==Position.RIGHT)
+		   						System.out.print(GameGrid[i][j].clue+ "XXXX");
+		   					if(GameGrid[i][j].pos1==Position.UP || GameGrid[i][j].pos2==Position.UP)
+		   						System.out.print(GameGrid[i][j].clue+ "X | ");
+		   					if(GameGrid[i][j].pos1==Position.DOWN || GameGrid[i][j].pos2==Position.DOWN){
+		   						System.out.print(GameGrid[i][j].clue+ "X | "); aux[j]=1;
+		   					}
+		   				}
 		   			}
-		   			if(GameGrid[i][j].pos1==Position.DOWN || GameGrid[i][j].pos2==Position.DOWN){
-		   				if(GameGrid[i][j].clue!=0) System.out.print(GameGrid[i][j].clue+ "# | ");	
-		   				else System.out.print(" # | ");
+
+		   			//two voisins
+		   			if((GameGrid[i][j].pos1==Position.DOWN && GameGrid[i][j].pos2==Position.RIGHT) 
+		   				|| (GameGrid[i][j].pos2==Position.DOWN && GameGrid[i][j].pos1==Position.RIGHT)){
+		   				System.out.print("XXXXX");
 		   				aux[j]=1;
 		   			}
-		   			if(GameGrid[i][j].pos1==Position.RIGHT || GameGrid[i][j].pos2==Position.RIGHT){
-		   				if(GameGrid[i][j].clue!=0) System.out.print(GameGrid[i][j].clue+ "####");	
-		   				else System.out.print("#####");
-
-		   				if(GameGrid[i][j].pos1==Position.DOWN || GameGrid[i][j].pos2==Position.DOWN) aux[j]=1;
+		   			if((GameGrid[i][j].pos1==Position.DOWN && GameGrid[i][j].pos2==Position.UP) 
+		   				|| (GameGrid[i][j].pos2==Position.DOWN && GameGrid[i][j].pos1==Position.UP)){
+		   				System.out.print(" X | ");
+		   				aux[j]=1;
 		   			}
-		   			if(GameGrid[i][j].clue==1){
-		   				System.out.print(GameGrid[i][j].clue+ "# | ");
+		   			if((GameGrid[i][j].pos1==Position.DOWN && GameGrid[i][j].pos2==Position.LEFT) 
+		   				|| (GameGrid[i][j].pos2==Position.DOWN && GameGrid[i][j].pos1==Position.LEFT)){
+		   				System.out.print("XX | ");
+		   				aux[j]=1;
 		   			}
-
+		   			if((GameGrid[i][j].pos1==Position.RIGHT && GameGrid[i][j].pos2==Position.LEFT) 
+		   				|| (GameGrid[i][j].pos2==Position.DOWN && GameGrid[i][j].pos1==Position.LEFT)){
+		   				System.out.print("XXXXX");
+		   			}
+		   			if((GameGrid[i][j].pos1==Position.UP && GameGrid[i][j].pos2==Position.RIGHT) 
+		   				|| (GameGrid[i][j].pos2==Position.UP && GameGrid[i][j].pos1==Position.RIGHT)){
+		   				System.out.print(" XXXX");
+		   			}
+		   			if((GameGrid[i][j].pos1==Position.UP && GameGrid[i][j].pos2==Position.LEFT) 
+		   				|| (GameGrid[i][j].pos2==Position.UP && GameGrid[i][j].pos1==Position.LEFT)){
+		   				System.out.print("XX | ");
+		   			}
 		   		}else{
 		   			if(GameGrid[i][j].clue!=0) System.out.print(GameGrid[i][j].clue+ "  | ");	
 		   			else System.out.print("   | ");
@@ -85,7 +112,7 @@ public class Logipix{
 		   	System.out.print("+");
 		   	for (int j=0;j<sizeX; j++) {
 		   		if(aux[j]==0) System.out.print("----+");	
-		   		else System.out.print("  # +");	
+		   		else System.out.print("  X +");	
 		   	}
 		   	System.out.print("\n");
 		 }
@@ -133,12 +160,12 @@ public class Logipix{
     	brokenLines.add(b);
 
     	ArrayList<Cell> c = new ArrayList<>();
-    	c.add(GameGrid[5][4]);
+    	c.add(GameGrid[4][5]);
     	c.add(GameGrid[5][5]);
-    	c.add(GameGrid[6][5]);
-    	c.add(GameGrid[6][4]);
-    	c.add(GameGrid[6][3]);
-    	c.add(GameGrid[7][3]);
+    	c.add(GameGrid[5][6]);
+    	c.add(GameGrid[4][6]);
+    	c.add(GameGrid[3][6]);
+    	c.add(GameGrid[3][7]);
     	addBrokenLine(c);
     	brokenLines.add(c);
 
