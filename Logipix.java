@@ -18,7 +18,7 @@ public class Logipix{
 		logipix.print();
 		logipix.example();
 		logipix.print();
-		logipix.task3();
+		logipix.Task3();
 	}
 
 	public void initialize(String name){
