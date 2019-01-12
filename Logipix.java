@@ -78,7 +78,7 @@ public class Logipix{
 		   			//two voisins
 		   			if((GameGrid[i][j].pos1==Position.DOWN && GameGrid[i][j].pos2==Position.RIGHT) 
 		   				|| (GameGrid[i][j].pos2==Position.DOWN && GameGrid[i][j].pos1==Position.RIGHT)){
-		   				System.out.print("XXXXX");
+		   				System.out.print(" XXXX");
 		   				aux[j]=1;
 		   			}
 		   			if((GameGrid[i][j].pos1==Position.DOWN && GameGrid[i][j].pos2==Position.UP) 
