@@ -3,7 +3,8 @@ import java.io.File;import java.io.File;
 import java.io.FileWriter;
 import java.io.FileNotFoundException; 
 import java.io.IOException;
- //Oi ollar
+ //TESTE TASK4
+//TENTATIVA VAMOS VER
 public class Logipix{
 
 	File input;
@@ -17,6 +18,7 @@ public class Logipix{
 		logipix.print();
 		logipix.example();
 		logipix.print();
+		logipix.task3();
 	}
 
 	public void initialize(String name){
@@ -117,6 +119,10 @@ public class Logipix{
 		   	System.out.print("\n");
 		 }
     }
+     private void Task3() {
+    	 //Teste
+    	 
+     }
 
     private void addBrokenLine(ArrayList<Cell> line){
     	for (int i=0; i < (line.size()-1) ; i++) {
