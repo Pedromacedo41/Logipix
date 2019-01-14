@@ -2,8 +2,8 @@ import java.util.*;
 
 public class BrokenLine{
 	Cell init;
-	LinkedList<Position> order;
-	BrokenLine(Cell init, LinkedList<Position> order){
+	ArrayList<Position> order;
+	BrokenLine(Cell init, ArrayList<Position> order){
 		this.init=init;
 		this.order=order;
 	}

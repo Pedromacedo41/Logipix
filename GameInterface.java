@@ -4,22 +4,25 @@ import javafx.scene.layout.*;
 import javafx.scene.shape.*;
 import javafx.scene.text.*;
 import javafx.scene.paint.*;
-import javafx.scene.control.Label;
+import javafx.scene.control.*;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import java.io.FileNotFoundException; 
 import java.io.IOException;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 
 public class GameInterface extends Application {
 
     int square=26;
+    int cont=0;
 
     @Override
     public void start(Stage stage) {
         Logipix logipix = new Logipix();
         logipix.initialize("InputFiles/Man.txt");
-        //logipix.example();
-        Scene scene = new Scene(generateGrid(logipix), logipix.sizeX*square, logipix.sizeY*square);
+        logipix.Backtracking();
+        Scene scene = new Scene(generateGrid(logipix), logipix.sizeX*square, logipix.sizeY*square+27);
         stage.setTitle("Logipix "+logipix.sizeX+"x"+logipix.sizeY);
         stage.setScene(scene);
         stage.show();
@@ -30,7 +33,29 @@ public class GameInterface extends Application {
     }
 
     private StackPane generateGrid(Logipix logipix){
+        Button btn = new Button();
+        btn.setText("Next");
         VBox m = new VBox();
+        m.getChildren().add(btn);
+        btn.setOnAction(new EventHandler<ActionEvent>() {
+                public void handle(ActionEvent event) {
+                    m.getChildren().add(draw(logipix));
+            }
+        });
+        m.getChildren().add(draw(logipix));
+
+        StackPane prin = new StackPane(m);
+        return prin;
+    }
+
+    private int cont(){
+        this.cont++;
+        return cont;
+    }
+
+    private HBox draw(Logipix logipix){
+        VBox m = new VBox();
+
         for(int i=0; i < logipix.sizeY; i++){
             HBox b = new HBox();
             for (int j=0; j< logipix.sizeX ; j++) {
@@ -208,8 +233,8 @@ public class GameInterface extends Application {
             }
             m.getChildren().add(b);
         }
-        StackPane prin = new StackPane(m);
-        return prin;
+
+        return new HBox(m);
     }
 
 }
