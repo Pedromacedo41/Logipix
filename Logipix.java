@@ -1,10 +1,9 @@
 import java.util.*;
-import java.io.File;import java.io.File;
+import java.io.File;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.FileNotFoundException; 
 import java.io.IOException;
-
-
 
 public class Logipix{
 
@@ -12,25 +11,7 @@ public class Logipix{
 	Cell[][] GameGrid;
 	int sizeX, sizeY;
 	PriorityQueue<Cell> OrderedCells;
-	ArrayList<Cell> LastBrokenLine;
-
-
-	public static void main(String[] args) throws FileNotFoundException {
-		Logipix logipix = new Logipix();
-		logipix.initialize("InputFiles/LogiX.txt");
-		logipix.print();
-		//logipix.example();
-		/*
-		logipix.LastBrokenLine = logipix.diponible_voisins(logipix.GameGrid[8][10]);
-		for(int i=0; i < logipix.LastBrokenLine.size(); i++){
-			System.out.println("Cell("+logipix.LastBrokenLine.get(i).x+","+logipix.LastBrokenLine.get(i).y+")");
-		}*/ 
-		for(int i=0; i < logipix.AllPaths(logipix.GameGrid[4][5]).size(); i++){
-			logipix.LastBrokenLine= logipix.AllPaths(logipix.GameGrid[4][5]).get(i);
-			logipix.addBrokenLine(logipix.LastBrokenLine); logipix.print(); logipix.removebrokenLine(logipix.LastBrokenLine);
-		}
-		
-	}
+	BrokenLine LastBrokenLine;
 
 	public void initialize(String name){
 		OrderedCells = new PriorityQueue<>(new mycomparator2());
@@ -57,79 +38,6 @@ public class Logipix{
         }
     }
 
-     public void print(){
-    	System.out.print("+");
-    	for (int j=0;j<sizeX; j++) {
-		 		System.out.print("----+");			
-		   	}
-		   	System.out.print("\n");
-
-	    for (int i=0;i<sizeY;i++) {
-	    	int[] aux = new int[sizeX];
-	    	System.out.print("| ");
-		   	for (int j=0;j<sizeX; j++) {
-		   		if(GameGrid[i][j].linked){
-		   			
-		   			//one voisin
-		   			if((GameGrid[i][j].pos1==Position.EMPTY || GameGrid[i][j].pos2==Position.EMPTY)) {
-		   				if(GameGrid[i][j].clue==1){
-		   					System.out.print(GameGrid[i][j].clue+ "X | ");
-		   				}else{
-		   					if(GameGrid[i][j].pos1==Position.LEFT || GameGrid[i][j].pos2==Position.LEFT)
-		   						System.out.print(GameGrid[i][j].clue+ "  | ");
-		   					if(GameGrid[i][j].pos1==Position.RIGHT || GameGrid[i][j].pos2==Position.RIGHT)
-		   						System.out.print(GameGrid[i][j].clue+ "XXXX");
-		   					if(GameGrid[i][j].pos1==Position.UP || GameGrid[i][j].pos2==Position.UP)
-		   						System.out.print(GameGrid[i][j].clue+ "X | ");
-		   					if(GameGrid[i][j].pos1==Position.DOWN || GameGrid[i][j].pos2==Position.DOWN){
-		   						System.out.print(GameGrid[i][j].clue+ "X | "); aux[j]=1;
-		   					}
-		   				}
-		   			}
-
-		   			//two voisins
-		   			if((GameGrid[i][j].pos1==Position.DOWN && GameGrid[i][j].pos2==Position.RIGHT) 
-		   				|| (GameGrid[i][j].pos2==Position.DOWN && GameGrid[i][j].pos1==Position.RIGHT)){
-		   				System.out.print(" XXXX");
-		   				aux[j]=1;
-		   			}
-		   			if((GameGrid[i][j].pos1==Position.DOWN && GameGrid[i][j].pos2==Position.UP) 
-		   				|| (GameGrid[i][j].pos2==Position.DOWN && GameGrid[i][j].pos1==Position.UP)){
-		   				System.out.print(" X | ");
-		   				aux[j]=1;
-		   			}
-		   			if((GameGrid[i][j].pos1==Position.DOWN && GameGrid[i][j].pos2==Position.LEFT) 
-		   				|| (GameGrid[i][j].pos2==Position.DOWN && GameGrid[i][j].pos1==Position.LEFT)){
-		   				System.out.print("XX | ");
-		   				aux[j]=1;
-		   			}
-		   			if((GameGrid[i][j].pos1==Position.RIGHT && GameGrid[i][j].pos2==Position.LEFT) 
-		   				|| (GameGrid[i][j].pos2==Position.DOWN && GameGrid[i][j].pos1==Position.LEFT)){
-		   				System.out.print("XXXXX");
-		   			}
-		   			if((GameGrid[i][j].pos1==Position.UP && GameGrid[i][j].pos2==Position.RIGHT) 
-		   				|| (GameGrid[i][j].pos2==Position.UP && GameGrid[i][j].pos1==Position.RIGHT)){
-		   				System.out.print(" XXXX");
-		   			}
-		   			if((GameGrid[i][j].pos1==Position.UP && GameGrid[i][j].pos2==Position.LEFT) 
-		   				|| (GameGrid[i][j].pos2==Position.UP && GameGrid[i][j].pos1==Position.LEFT)){
-		   				System.out.print("XX | ");
-		   			}
-		   		}else{
-		   			if(GameGrid[i][j].clue!=0) System.out.print(GameGrid[i][j].clue+ "  | ");	
-		   			else System.out.print("   | ");
-		   		}  		
-		   	}
-		   	System.out.print("\n");
-		   	System.out.print("+");
-		   	for (int j=0;j<sizeX; j++) {
-		   		if(aux[j]==0) System.out.print("----+");	
-		   		else System.out.print("  X +");	
-		   	}
-		   	System.out.print("\n");
-		 }
-    }
-
     public void addBrokenLine(ArrayList<Cell> line){
     	for (int i=0; i < (line.size()-1) ; i++) {
     	    line.get(i).linked = true;    		
@@ -154,6 +62,19 @@ public class Logipix{
     		}
     	}
     	line.get(line.size()-1).linked = true;
+    }
+
+    public void addBrokenLine2(BrokenLine brokenline){
+    	Cell temp; Position temp2;
+    	brokenline.init.linked = true;
+    	brokenline.init.pos1 = brokenline.order.pop();
+    	while((temp2=brokenline.order.pop())!=null) {
+    	    if(temp2==Position.UP) {}
+    	    if(temp2==Position.DOWN){}
+    	    if(temp2==Position.LEFT){}
+    	    if(temp2==Position.RIGHT){}
+    	}
+    	
     }
 
     public void removebrokenLine(ArrayList<Cell> line){
@@ -199,11 +120,6 @@ public class Logipix{
     		}
     	}
     	return true;
-    }
-
-    private ArrayList<Cell> NewPath(Cell cell){
-    	ArrayList<Cell> brokenline = new ArrayList<>();
-    	return brokenline;
     }
 
     public ArrayList<ArrayList<Cell>> AllPaths(Cell cell){
@@ -268,26 +184,28 @@ public class Logipix{
 
     	return disponible;
     }
+ }
 
-
+ /*
     private void Backtracking(){
     	Cell former; 
     	while((former= OrderedCells.poll())!=null){
     		if(former.linked==false){
     			boolean newPathfounded = false;
-	    		ArrayList<Cell> newBrokenLine = NewPath(former);
+	    		//BrokenLine newBrokenLine = NewPath(former);
 	    		if(newBrokenLine==null){
-	    			removebrokenLine(LastBrokenLine);
+	    			removebrokenLine2(LastBrokenLine);
 	    			OrderedCells.add(former);
 	    		}else{
-	    			addBrokenLine(newBrokenLine);
-	    			LastBrokenLine= newBrokenLine;
+	    			//addBrokenLine2(newBrokenLine);
+	    			//LastBrokenLine= newBrokenLine;
 	    		}
     		}
     	}
     }
 
-}
+
+*/
 
 class mycomparator2 implements Comparator<Cell>
 {
