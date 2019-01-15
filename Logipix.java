@@ -10,13 +10,13 @@ public class Logipix{
 	File input;
 	Cell[][] GameGrid;
 	int sizeX, sizeY;
-	PriorityQueue<Cell> OrderedCells;
+	LinkedList<Cell> orderedCells;
+	ArrayList<Cell> OrderedCells;
 	ArrayList<Cell> LastBrokenLine;
-	int Counter=0;
-	Cell Last;
+	int Counter=0, MemCounter;
 
 	public void initialize(String name){
-		OrderedCells = new PriorityQueue<>(new mycomparator2());
+		OrderedCells = new ArrayList<>();
 		read(name);
 	}
 	private void read(String name){
@@ -30,10 +30,16 @@ public class Logipix{
 	   			for (int j=0;j<sizeX; j++) {
 	   				int s = readInput.nextInt();
 	   				GameGrid[i][j]= new Cell(i,j,s);
-	   				if(GameGrid[i][j].clue!=0)	Counter++;
-	   				OrderedCells.add(GameGrid[i][j]);
+	   				if(GameGrid[i][j].clue!=0){
+	   					Counter++;
+	   					OrderedCells.add(GameGrid[i][j]);
+	   				}
 	   			}
 	   		}
+	   		MemCounter= Counter;
+	   		Collections.sort(OrderedCells, new mycomparator2());
+	   		orderedCells = new LinkedList<>();
+	   		orderedCells.addAll(OrderedCells);
 
    		}catch (IOException e) {
         	System.err.println("Error while opening file");
@@ -146,14 +152,23 @@ public class Logipix{
 
     public void example(int i){
 
+    	/*
     	ArrayList<Position> order1 = new ArrayList<>();
     	order1.add(Position.RIGHT);
     	order1.add(Position.RIGHT);
     	order1.add(Position.UP);
     	BrokenLine example = new BrokenLine(GameGrid[8][0],order1);
-    	//addBrokenLine(example);
+    	//addBrokenLine(example);*/
+
+    	ArrayList<Cell> b = new ArrayList<>();
+    	b.add(GameGrid[8][0]);
+    	b.add(GameGrid[8][1]);
+    	b.add(GameGrid[8][2]);
+    	b.add(GameGrid[7][2]);
+    	addBrokenLine2(b);
+		removebrokenLine2(b);
  
-    	ArrayList<ArrayList<Cell>> t = AllPaths(GameGrid[0][1]);
+    	ArrayList<ArrayList<Cell>> t = AllPaths(GameGrid[22][8]);
     	System.out.println(t.size());
 
     	if(i<t.size()){
@@ -175,30 +190,26 @@ public class Logipix{
     public ArrayList<ArrayList<Cell>> AllPaths(Cell cell){
     	ArrayList<ArrayList<Cell>> allbrokenLines = new ArrayList<>();
     	ArrayList<Cell> current = new ArrayList<>();
-    	current.add(cell);
        	recursive(cell,cell.clue-1, cell.clue, current, allbrokenLines);
     	return allbrokenLines;
     }
 
-    private void recursive(Cell cell, int n, int a, ArrayList<Cell> current, ArrayList<ArrayList<Cell>> allbrokenLines){
+    private void recursive(Cell cell, int n, int destiny, ArrayList<Cell> current, ArrayList<ArrayList<Cell>> allbrokenLines){
     	cell.temp=true;
     	ArrayList<Cell> temp = diponible_voisins(cell,n);
-    	Cell d;
-    	current.add(cell);
-    	for(int i=0; i < temp.size(); i++){
-    		d= temp.get(i); d.temp = true;
-    		if(n==1){
-    			if(d.clue==a){
-    				current.add(d);
-    				allbrokenLines.add(current);
-    				current.remove(0);
-    			}
-    		}else{
-    			ArrayList<Cell> current2 = new ArrayList<>();
+    	ArrayList<Cell> current2 = new ArrayList<>();
+    	if(n==0){
+    		if(cell.clue==destiny){
     			current2.addAll(current); 
-    			recursive(d, n-1,a, current2, allbrokenLines);
+    			current2.add(cell);
+    			allbrokenLines.add(current2);
     		}
-    		d.temp =false;
+    	}else{
+	    	current2.addAll(current); 
+	    	current2.add(cell);
+    		for(int i=0; i < temp.size(); i++){
+	    		recursive(temp.get(i), n-1,destiny, current2, allbrokenLines);
+    		}
     	}
     	cell.temp=false;
     }
@@ -235,36 +246,47 @@ public class Logipix{
 
 
     public void Backtracking(){
-    	Cell former; 
-    	while(this.Counter!=0){
-    		former= OrderedCells.peek();
-    		if(former.linked==false){
-    			if(former.Counter!=0){
-    				if(former.allbrokenlines.size()<former.Counter){
-    					removebrokenLine2(LastBrokenLine);
-    					OrderedCells.add(Last);
-    				}else{
-    					addBrokenLine2(LastBrokenLine = former.allbrokenlines.get(former.Counter));
-    					former.Counter++; Counter-=2; Last = former; OrderedCells.poll();
-    					break;
-    				}
+    	Cell former; 	
+    	while(orderedCells.size()!=0){
+    		former= orderedCells.peek();
+    			if(former.clue==1){
+    				former.linked=true;
+    				orderedCells.poll(); 
     			}else{
-    				former.allbrokenlines = AllPaths(former);
-    				if(former.allbrokenlines.size()==0){
-    					removebrokenLine2(LastBrokenLine);
-    					OrderedCells.add(Last);
-    				}else{
-    					addBrokenLine2(LastBrokenLine = former.allbrokenlines.get(former.Counter));
-    					former.Counter++; Counter-=2; Last = former; OrderedCells.poll();
-    					break;
-    				}
+    				if(former.Counter!=0){
+	    				if((former.allbrokenlines.size()-1)<former.Counter){
+	    					removebrokenLine2(LastBrokenLine);
+	    					former.Counter=0;
+	    					orderedCells.addFirst(LastBrokenLine.get(0));
+	    					orderedCells.addFirst(LastBrokenLine.get(LastBrokenLine.size()-1));
+	    					System.out.println("aqui2:"+former.x+","+former.y);
+	    				}else{
+	    					addBrokenLine2(LastBrokenLine=former.allbrokenlines.get(former.Counter));
+	    					former.Counter++; 
+	    					orderedCells.poll(); 
+	    					orderedCells.remove(LastBrokenLine.get(LastBrokenLine.size()-1));
+	    					System.out.println("aqui0:"+former.allbrokenlines.size());
+	    				}
+	    			}else{
+	    				former.allbrokenlines = AllPaths(former);
+	    				if(former.allbrokenlines.size()==0){
+	    					removebrokenLine2(LastBrokenLine);
+	    					orderedCells.addFirst(LastBrokenLine.get(0));
+	    					orderedCells.addFirst(LastBrokenLine.get(LastBrokenLine.size()-1));
+	    				}else{
+	    					addBrokenLine2(LastBrokenLine=former.allbrokenlines.get(former.Counter));
+	    					former.Counter++; 
+	    					orderedCells.poll(); 
+	    					orderedCells.remove(LastBrokenLine.get(LastBrokenLine.size()-1));
+	    					System.out.println("ll"+former.allbrokenlines.size()+"("+former.x+","+former.y+")");
+	    				}
+	    			}
     			}
-    		}
     	}
     }
 
  }
-
+//consertar os pares 
 
 
 class mycomparator2 implements Comparator<Cell>
@@ -272,6 +294,6 @@ class mycomparator2 implements Comparator<Cell>
    @Override
    public int compare(Cell a, Cell b)
    {
-      return b.clue - a.clue;
+      return a.clue - b.clue;
    }
 }

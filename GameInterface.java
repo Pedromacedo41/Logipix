@@ -21,7 +21,7 @@ public class GameInterface extends Application {
     public void start(Stage stage) {
         Logipix logipix = new Logipix();
         logipix.initialize("InputFiles/Man.txt");
-        logipix.Backtracking();
+        //logipix.Backtracking();
         Scene scene = new Scene(generateGrid(logipix), logipix.sizeX*square, logipix.sizeY*square+27);
         stage.setTitle("Logipix "+logipix.sizeX+"x"+logipix.sizeY);
         stage.setScene(scene);
@@ -39,18 +39,23 @@ public class GameInterface extends Application {
         m.getChildren().add(btn);
         btn.setOnAction(new EventHandler<ActionEvent>() {
                 public void handle(ActionEvent event) {
-                    m.getChildren().add(draw(logipix));
+                    
+                    if(logipix.LastBrokenLine!=null){
+                       logipix.removebrokenLine2(logipix.LastBrokenLine);
+                    }
+                    m.getChildren().remove(1);
+                    logipix.example(cont());
+                    m.getChildren().add(draw(logipix)); 
             }
         });
-        m.getChildren().add(draw(logipix));
+        m.getChildren().add(draw(logipix)); 
 
         StackPane prin = new StackPane(m);
         return prin;
     }
 
     private int cont(){
-        this.cont++;
-        return cont;
+        return cont++;
     }
 
     private HBox draw(Logipix logipix){
@@ -182,7 +187,7 @@ public class GameInterface extends Application {
                                 
                             }
                             if((logipix.GameGrid[i][j].pos1==Position.RIGHT && logipix.GameGrid[i][j].pos2==Position.LEFT) 
-                                || (logipix.GameGrid[i][j].pos2==Position.DOWN && logipix.GameGrid[i][j].pos1==Position.LEFT)){
+                                || (logipix.GameGrid[i][j].pos2==Position.RIGHT && logipix.GameGrid[i][j].pos1==Position.LEFT)){
 
                                 MoveTo moveTo = new MoveTo(2.3,a.getHeight()*0.5);
                                 LineTo lineTo = new LineTo(a.getHeight()-2.3,a.getHeight()*0.5);
