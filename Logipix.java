@@ -1,5 +1,6 @@
 import java.util.*;
-import java.io.File;import java.io.File;
+import java.io.File;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.FileNotFoundException; 
 import java.io.IOException;
@@ -9,20 +10,14 @@ public class Logipix{
 	File input;
 	Cell[][] GameGrid;
 	int sizeX, sizeY;
-	ArrayList<ArrayList<Cell>> brokenLines;
-
-	public static void main(String[] args) throws FileNotFoundException {
-		Logipix logipix = new Logipix();
-		logipix.initialize("InputFiles/LogiX.txt");
-		logipix.print();
-		logipix.example();
-		logipix.print();
-	}
+	LinkedList<Cell> orderedCells;
+	ArrayList<Cell> OrderedCells;
+	Stack<ArrayList<Cell>> LastBrokenLine;
+	int Counter=0, MemCounter;
 
 	public void initialize(String name){
-		brokenLines = new ArrayList<>();
+		OrderedCells = new ArrayList<>();
 		read(name);
-
 	}
 	private void read(String name){
 		try {
@@ -34,10 +29,17 @@ public class Logipix{
 	   		for (int i=0;i<sizeY;i++) {
 	   			for (int j=0;j<sizeX; j++) {
 	   				int s = readInput.nextInt();
-	   				GameGrid[i][j]= new Cell(i,j,s);	
-
+	   				GameGrid[i][j]= new Cell(i,j,s);
+	   				if(GameGrid[i][j].clue!=0){
+	   					Counter++;
+	   					OrderedCells.add(GameGrid[i][j]);
+	   				}
 	   			}
 	   		}
+	   		MemCounter= Counter;
+	   		Collections.sort(OrderedCells, new mycomparator2());
+	   		orderedCells = new LinkedList<>();
+	   		orderedCells.addAll(OrderedCells);
 
    		}catch (IOException e) {
         	System.err.println("Error while opening file");
@@ -45,80 +47,41 @@ public class Logipix{
         }
     }
 
-     public void print(){
-    	System.out.print("+");
-    	for (int j=0;j<sizeX; j++) {
-		 		System.out.print("----+");			
-		   	}
-		   	System.out.print("\n");
-
-	    for (int i=0;i<sizeY;i++) {
-	    	int[] aux = new int[sizeX];
-	    	System.out.print("| ");
-		   	for (int j=0;j<sizeX; j++) {
-		   		if(GameGrid[i][j].linked){
-		   			
-		   			//one voisin
-		   			if((GameGrid[i][j].pos1==Position.EMPTY || GameGrid[i][j].pos2==Position.EMPTY)) {
-		   				if(GameGrid[i][j].clue==1){
-		   					System.out.print(GameGrid[i][j].clue+ "X | ");
-		   				}else{
-		   					if(GameGrid[i][j].pos1==Position.LEFT || GameGrid[i][j].pos2==Position.LEFT)
-		   						System.out.print(GameGrid[i][j].clue+ "  | ");
-		   					if(GameGrid[i][j].pos1==Position.RIGHT || GameGrid[i][j].pos2==Position.RIGHT)
-		   						System.out.print(GameGrid[i][j].clue+ "XXXX");
-		   					if(GameGrid[i][j].pos1==Position.UP || GameGrid[i][j].pos2==Position.UP)
-		   						System.out.print(GameGrid[i][j].clue+ "X | ");
-		   					if(GameGrid[i][j].pos1==Position.DOWN || GameGrid[i][j].pos2==Position.DOWN){
-		   						System.out.print(GameGrid[i][j].clue+ "X | "); aux[j]=1;
-		   					}
-		   				}
-		   			}
-
-		   			//two voisins
-		   			if((GameGrid[i][j].pos1==Position.DOWN && GameGrid[i][j].pos2==Position.RIGHT) 
-		   				|| (GameGrid[i][j].pos2==Position.DOWN && GameGrid[i][j].pos1==Position.RIGHT)){
-		   				System.out.print(" XXXX");
-		   				aux[j]=1;
-		   			}
-		   			if((GameGrid[i][j].pos1==Position.DOWN && GameGrid[i][j].pos2==Position.UP) 
-		   				|| (GameGrid[i][j].pos2==Position.DOWN && GameGrid[i][j].pos1==Position.UP)){
-		   				System.out.print(" X | ");
-		   				aux[j]=1;
-		   			}
-		   			if((GameGrid[i][j].pos1==Position.DOWN && GameGrid[i][j].pos2==Position.LEFT) 
-		   				|| (GameGrid[i][j].pos2==Position.DOWN && GameGrid[i][j].pos1==Position.LEFT)){
-		   				System.out.print("XX | ");
-		   				aux[j]=1;
-		   			}
-		   			if((GameGrid[i][j].pos1==Position.RIGHT && GameGrid[i][j].pos2==Position.LEFT) 
-		   				|| (GameGrid[i][j].pos2==Position.DOWN && GameGrid[i][j].pos1==Position.LEFT)){
-		   				System.out.print("XXXXX");
-		   			}
-		   			if((GameGrid[i][j].pos1==Position.UP && GameGrid[i][j].pos2==Position.RIGHT) 
-		   				|| (GameGrid[i][j].pos2==Position.UP && GameGrid[i][j].pos1==Position.RIGHT)){
-		   				System.out.print(" XXXX");
-		   			}
-		   			if((GameGrid[i][j].pos1==Position.UP && GameGrid[i][j].pos2==Position.LEFT) 
-		   				|| (GameGrid[i][j].pos2==Position.UP && GameGrid[i][j].pos1==Position.LEFT)){
-		   				System.out.print("XX | ");
-		   			}
-		   		}else{
-		   			if(GameGrid[i][j].clue!=0) System.out.print(GameGrid[i][j].clue+ "  | ");	
-		   			else System.out.print("   | ");
-		   		}  		
-		   	}
-		   	System.out.print("\n");
-		   	System.out.print("+");
-		   	for (int j=0;j<sizeX; j++) {
-		   		if(aux[j]==0) System.out.print("----+");	
-		   		else System.out.print("  X +");	
-		   	}
-		   	System.out.print("\n");
-		 }
+    public void addBrokenLine(BrokenLine brokenline){ //Dado uma lista de comandos, marcam as celulas
+    	Cell temp =  brokenline.init;
+    	Position temp2;
+    	temp.linked = true;
+    	temp.pos1 = brokenline.order.get(0);
+    	for(int i=0; i< brokenline.order.size(); i++) {
+    		temp2=brokenline.order.get(i);
+    	    if(temp2==Position.UP) {
+    	    	temp = GameGrid[temp.x-1][temp.y];
+    	    	temp.linked=true;
+    	    	temp.pos2=Position.DOWN;
+    	    	if(i<(brokenline.order.size()-1)) temp.pos1 = brokenline.order.get(i+1);
+    	    }
+    	    if(temp2==Position.DOWN){temp = GameGrid[temp.x+1][temp.y];
+    	    	temp.linked=true;
+    	    	temp.pos2=Position.UP;
+    	    	if(i<(brokenline.order.size()-1)) temp.pos1 = brokenline.order.get(i+1);
+    	    }
+    	    if(temp2==Position.LEFT){
+    	    	temp = GameGrid[temp.x][temp.y-1];
+    	    	temp.linked=true;
+    	    	temp.pos2=Position.RIGHT;
+    	    	if(i<(brokenline.order.size()-1)) temp.pos1 = brokenline.order.get(i+1);
+    	    }
+    	    if(temp2==Position.RIGHT){
+    	    	temp = GameGrid[temp.x][temp.y+1];
+    	    	temp.linked=true;
+    	    	temp.pos2=Position.LEFT;
+    	    	if(i<(brokenline.order.size()-1)) temp.pos1 = brokenline.order.get(i+1);
+    	    }
+    	}
+    	
     }
 
-    private void addBrokenLine(ArrayList<Cell> line){
+    private void addBrokenLine2(ArrayList<Cell> line){ //Create the links between the paths
     	for (int i=0; i < (line.size()-1) ; i++) {
     	    line.get(i).linked = true;    		
     		if(line.get(i).y != line.get(i+1).y){
@@ -142,45 +105,208 @@ public class Logipix{
     		}
     	}
     	line.get(line.size()-1).linked = true;
+	}
+
+    public void removebrokenLine(BrokenLine brokenline){ //See it later
+    	Cell temp =  brokenline.init;
+    	Position temp2;
+    	temp.linked = false;
+    	temp.pos1 = Position.EMPTY;
+    	for(int i=0; i< brokenline.order.size(); i++) {
+    		temp2=brokenline.order.get(i);
+    	    if(temp2==Position.UP) {
+    	    	temp = GameGrid[temp.x-1][temp.y];
+    	    	temp.linked=false;
+    	    	temp.pos2=Position.EMPTY;
+    	    	if(i<(brokenline.order.size()-1)) temp.pos1 = Position.EMPTY;;
+    	    }
+    	    if(temp2==Position.DOWN){temp = GameGrid[temp.x+1][temp.y];
+    	    	temp.linked=false;
+    	    	temp.pos2=Position.UP;
+    	    	if(i<(brokenline.order.size()-1)) temp.pos1 = Position.EMPTY;;
+    	    }
+    	    if(temp2==Position.LEFT){
+    	    	temp = GameGrid[temp.x][temp.y-1];
+    	    	temp.linked=false;
+    	    	temp.pos2=Position.EMPTY;
+    	    	if(i<(brokenline.order.size()-1)) temp.pos1 = Position.EMPTY;;
+    	    }
+    	    if(temp2==Position.RIGHT){
+    	    	temp = GameGrid[temp.x][temp.y+1];
+    	    	temp.linked=false;
+    	    	temp.pos2=Position.EMPTY;
+    	    	if(i<(brokenline.order.size()-1)) temp.pos1 = Position.EMPTY;;
+    	    }
+    	}
+    	
     }
 
-    public void example(){
-    	ArrayList<Cell> a = new ArrayList<>();
-    	a.add(GameGrid[0][0]);
-    	a.add(GameGrid[0][1]);
-    	addBrokenLine(a);
-    	brokenLines.add(a);
+    public void removebrokenLine2(ArrayList<Cell> line){ //Removing a broken line 
+    	for (int i=0; i < (line.size()-1) ; i++) {
+    	    line.get(i).linked = false;    		
+    		line.get(i).pos1 = Position.EMPTY;
+    		line.get(i+1).pos2 = Position.EMPTY;
+    	}
+    	line.get(line.size()-1).linked = false;
+	}
+
+    public void example(int i){
+
+    	/*
+    	ArrayList<Position> order1 = new ArrayList<>();
+    	order1.add(Position.RIGHT);
+    	order1.add(Position.RIGHT);
+    	order1.add(Position.UP);
+    	BrokenLine example = new BrokenLine(GameGrid[8][0],order1);
+    	//addBrokenLine(example);*/
 
     	ArrayList<Cell> b = new ArrayList<>();
     	b.add(GameGrid[8][0]);
     	b.add(GameGrid[8][1]);
     	b.add(GameGrid[8][2]);
     	b.add(GameGrid[7][2]);
-    	addBrokenLine(b);
-    	brokenLines.add(b);
+    	addBrokenLine2(b);
+		removebrokenLine2(b);
+ 
+    	ArrayList<ArrayList<Cell>> t = AllPaths(GameGrid[22][8]);
+    	System.out.println(t.size());
 
-    	ArrayList<Cell> c = new ArrayList<>();
-    	c.add(GameGrid[4][5]);
-    	c.add(GameGrid[5][5]);
-    	c.add(GameGrid[5][6]);
-    	c.add(GameGrid[4][6]);
-    	c.add(GameGrid[3][6]);
-    	c.add(GameGrid[3][7]);
-    	addBrokenLine(c);
-    	brokenLines.add(c);
+    	if(i<t.size()){
+    		addBrokenLine2((LastBrokenLine.push(t.get(i))));
+    	} 
 
-    	ArrayList<Cell> d = new ArrayList<>();
-    	d.add(GameGrid[0][10]);
-    	addBrokenLine(d);
-    	brokenLines.add(d);
     }
 
-    private boolean compareBrokenLines(ArrayList<Cell> a1, ArrayList<Cell> a2){
+    private boolean compareBrokenLines(ArrayList<Cell> a1, ArrayList<Cell> a2){ 
     	for (int i=0; i < a1.size() ; i++ ) {
-    		if(a1.get(i).pos1!=a2.get(i).pos1){
+    		if(a1.get(i)!=a2.get(i)){
     			return false;
     		}
     	}
     	return true;
     }
+
+
+    public ArrayList<ArrayList<Cell>> AllPaths(Cell cell){
+    	ArrayList<ArrayList<Cell>> allbrokenLines = new ArrayList<>();
+    	ArrayList<Cell> current = new ArrayList<>();
+       	recursive(cell,cell.clue-1, cell.clue, current, allbrokenLines);
+    	return allbrokenLines;
+    }
+
+    private void recursive(Cell cell, int n, int destiny, ArrayList<Cell> current, ArrayList<ArrayList<Cell>> allbrokenLines){
+    	cell.temp=true;
+    	ArrayList<Cell> temp = disponible_voisins(cell,n);
+    	ArrayList<Cell> current2 = new ArrayList<>();
+    	if(n==0){
+    		if(cell.clue==destiny){
+    			current2.addAll(current); 
+    			current2.add(cell);
+    			allbrokenLines.add(current2);
+    		}
+    	}else{
+	    	current2.addAll(current); 
+	    	current2.add(cell);
+    		for(int i=0; i < temp.size(); i++){
+	    		recursive(temp.get(i), n-1,destiny, current2, allbrokenLines);
+    		}
+    	}
+    	cell.temp=false;
+    }
+
+    public ArrayList<Cell> disponible_voisins(Cell cell, int n){
+    	ArrayList<Cell> disponible = new ArrayList<>();
+    	if((cell.y+1) < sizeX){
+    		if(GameGrid[cell.x][cell.y+1].linked==false && GameGrid[cell.x][cell.y+1].temp==false){
+    			if(n==1) disponible.add(GameGrid[cell.x][cell.y+1]);
+    			else{ if(GameGrid[cell.x][cell.y+1].clue==0) disponible.add(GameGrid[cell.x][cell.y+1]); }
+    		}
+    	}
+    	if((cell.x+1) < sizeY){
+    		if(GameGrid[cell.x+1][cell.y].linked==false && GameGrid[cell.x+1][cell.y].temp==false){
+    			if(n==1) disponible.add(GameGrid[cell.x+1][cell.y]);
+    			else{ if(GameGrid[cell.x+1][cell.y].clue==0) disponible.add(GameGrid[cell.x+1][cell.y]); }
+    		}
+    	}
+    	if((cell.x-1) >= 0){
+    		if(GameGrid[cell.x-1][cell.y].linked==false && GameGrid[cell.x-1][cell.y].temp==false){
+    			if(n==1) disponible.add(GameGrid[cell.x-1][cell.y]);
+    			else{ if(GameGrid[cell.x-1][cell.y].clue==0) disponible.add(GameGrid[cell.x-1][cell.y]); }
+    		}
+    	}
+    	if((cell.y-1) >= 0){
+    		if(GameGrid[cell.x][cell.y-1].linked==false && GameGrid[cell.x][cell.y-1].temp==false){
+    			if(n==1) disponible.add(GameGrid[cell.x][cell.y-1]);
+    			else{ if(GameGrid[cell.x][cell.y-1].clue==0) disponible.add(GameGrid[cell.x][cell.y-1]); }
+    		}
+    	}
+
+    	return disponible;
+    }
+
+
+    public void Backtracking(){
+    	Cell former;
+        LastBrokenLine = new Stack<ArrayList<Cell>>();
+    	while(orderedCells.size()!=0){
+    		former= orderedCells.peek();
+               // System.out.println("Former clue " + former.clue +" Former counter "+ former.Counter);
+    			if(former.clue==1){
+    				former.linked=true;
+    				orderedCells.poll(); 
+    			}else{
+    				if(former.Counter!=0){
+	    				if((former.allbrokenlines.size()-1)<former.Counter){
+	    					removebrokenLine2(LastBrokenLine.peek());
+
+	    					former.Counter=0;
+                            //System.out.println("PASSEI AQUI CARAIO ");
+                            LastBrokenLine.peek().get(LastBrokenLine.peek().size()-1).Counter = 0;
+
+                            //System.out.println(LastBrokenLine.peek().get(LastBrokenLine.peek().size()-1).clue + " oi");
+                            orderedCells.addFirst(LastBrokenLine.peek().get(LastBrokenLine.peek().size()-1));
+	    				    orderedCells.addFirst(LastBrokenLine.peek().get(0));
+	    					
+	    					//System.out.println("aqui2:"+former.x+","+former.y);
+                            LastBrokenLine.pop();
+	    				}else{
+	    					addBrokenLine2(LastBrokenLine.push(former.allbrokenlines.get(former.Counter)));
+	    					former.Counter++; 
+	    					orderedCells.poll(); 
+	    					orderedCells.remove(LastBrokenLine.peek().get(LastBrokenLine.peek().size()-1));
+	    					//System.out.println("aqui0:"+former.allbrokenlines.size());
+	    				}
+	    			}else{
+	    				former.allbrokenlines = AllPaths(former);
+                        //System.out.println("Former clue = " + former.clue + " tamanho = " + former.allbrokenlines.size());
+	    				if(former.allbrokenlines.size()==0){
+	    					removebrokenLine2(LastBrokenLine.peek());
+                            orderedCells.addFirst(LastBrokenLine.peek().get(LastBrokenLine.peek().size()-1));
+	    					orderedCells.addFirst(LastBrokenLine.peek().get(0));
+	    					
+                            //System.out.println("passei por aqui");
+                            LastBrokenLine.pop();
+	    				}else{
+	    					addBrokenLine2(LastBrokenLine.push(former.allbrokenlines.get(former.Counter)));
+	    					former.Counter++; 
+	    					orderedCells.poll(); 
+	    					orderedCells.remove(LastBrokenLine.peek().get(LastBrokenLine.peek().size()-1));
+	    					//System.out.println("ll"+former.allbrokenlines.size()+"("+former.x+","+former.y+")");
+	    				}
+	    			}
+    			}
+    	}
+    }
+
+ }
+//consertar os pares 
+
+
+class mycomparator2 implements Comparator<Cell>
+{
+   @Override
+   public int compare(Cell a, Cell b)
+   {
+      return a.clue - b.clue;
+   }
 }
