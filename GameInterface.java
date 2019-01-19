@@ -44,7 +44,7 @@ public class GameInterface extends Application {
                        logipix.removebrokenLine2(logipix.LastBrokenLine);
                     }
                     m.getChildren().remove(1);
-                    logipix.example(cont());
+                    logipix.Backtracking();
                     m.getChildren().add(draw(logipix)); 
             }
         });

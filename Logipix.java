@@ -273,6 +273,7 @@ public class Logipix{
 	    					removebrokenLine2(LastBrokenLine);
 	    					orderedCells.addFirst(LastBrokenLine.get(0));
 	    					orderedCells.addFirst(LastBrokenLine.get(LastBrokenLine.size()-1));
+	    					break;
 	    				}else{
 	    					addBrokenLine2(LastBrokenLine=former.allbrokenlines.get(former.Counter));
 	    					former.Counter++; 
