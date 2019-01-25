@@ -20,8 +20,8 @@ public class GameInterface extends Application {
     @Override
     public void start(Stage stage) {
         Logipix logipix = new Logipix();
-        logipix.initialize("InputFiles/LogiX.txt");
-        logipix.Backtracking();
+        logipix.initialize("InputFiles/Man.txt");
+        //logipix.Backtracking();
         Scene scene = new Scene(generateGrid(logipix), logipix.sizeX*square, logipix.sizeY*square+27);
         stage.setTitle("Logipix "+logipix.sizeX+"x"+logipix.sizeY);
         stage.setScene(scene);
@@ -41,7 +41,8 @@ public class GameInterface extends Application {
                 public void handle(ActionEvent event) {
                     
                     if(logipix.LastBrokenLine!=null){
-                       logipix.removebrokenLine2(logipix.LastBrokenLine.pop());
+                        if(logipix.LastBrokenLine.size()!=0) logipix.removebrokenLine2(logipix.LastBrokenLine.pop());
+                       // logipix.Backtracking();
                     }
                     m.getChildren().remove(1);
                     logipix.example(cont());
@@ -81,6 +82,7 @@ public class GameInterface extends Application {
                 a.setFill(Color.WHITE);
 
                 if(logipix.GameGrid[i][j].linked) a.setFill(Color.AQUAMARINE);
+                if(logipix.GameGrid[i][j].toujours_ocuppe) a.setFill(Color.YELLOW);
 
                 if(logipix.GameGrid[i][j].linked){
                     

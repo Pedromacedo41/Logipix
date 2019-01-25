@@ -12,11 +12,14 @@ public class Logipix{
 	int sizeX, sizeY;
 	LinkedList<Cell> orderedCells;
 	ArrayList<Cell> OrderedCells;
-	Stack<ArrayList<Cell>> LastBrokenLine;
+    Stack<ArrayList<Cell>> LastBrokenLine;
+	Stack<BrokenLine> LastBrokenLine2;
 	int Counter=0, MemCounter;
 
 	public void initialize(String name){
 		OrderedCells = new ArrayList<>();
+        LastBrokenLine = new Stack<>();
+        LastBrokenLine2 = new Stack<>();
 		read(name);
 	}
 	private void read(String name){
@@ -168,8 +171,9 @@ public class Logipix{
     	addBrokenLine2(b);
 		removebrokenLine2(b);
  
-    	ArrayList<ArrayList<Cell>> t = AllPaths(GameGrid[22][8]);
+    	ArrayList<ArrayList<Cell>> t = AllPaths(GameGrid[4][5], false);
     	System.out.println(t.size());
+        cases_obligatories(GameGrid[4][5]);
 
     	if(i<t.size()){
     		addBrokenLine2((LastBrokenLine.push(t.get(i))));
@@ -186,17 +190,41 @@ public class Logipix{
     	return true;
     }
 
+    private void cases_obligatories(Cell cell){
+          ArrayList<ArrayList<Cell>> t=  AllPaths(cell,true);
+          int size = t.size(), lenght = t.get(0).size();
+          HashMap<Pair,Integer> casas = new HashMap<>();
+          for(int i=0; i < size; i++){
+                for(int j=0; j< lenght; j++){
+                      Pair<Integer, Integer> p1 = new Pair<Integer,Integer>(t.get(i).get(j).x,t.get(i).get(j).y);
+                      if(casas.containsKey(p1))  casas.put(p1, casas.get(p1)+1);
+                      else casas.put(p1,1);
+                }
+          }
 
-    public ArrayList<ArrayList<Cell>> AllPaths(Cell cell){
+        Set set = casas.entrySet();
+        Iterator iterator = set.iterator();
+        while(iterator.hasNext()){
+            Map.Entry mentry = (Map.Entry)iterator.next();
+            if((int) mentry.getValue()==size){
+                Pair p2 =(Pair)mentry.getKey();
+                if(GameGrid[(int) p2.getFirst()][(int) p2.getSecond()].clue==0) 
+                    GameGrid[(int) p2.getFirst()][(int) p2.getSecond()].toujours_ocuppe = true;
+            }
+        }
+    }
+
+
+    public ArrayList<ArrayList<Cell>> AllPaths(Cell cell,boolean keep_linked){
     	ArrayList<ArrayList<Cell>> allbrokenLines = new ArrayList<>();
     	ArrayList<Cell> current = new ArrayList<>();
-       	recursive(cell,cell.clue-1, cell.clue, current, allbrokenLines);
+       	recursive(cell,cell.clue-1, cell.clue, current, allbrokenLines,keep_linked);
     	return allbrokenLines;
     }
 
-    private void recursive(Cell cell, int n, int destiny, ArrayList<Cell> current, ArrayList<ArrayList<Cell>> allbrokenLines){
+    private void recursive(Cell cell, int n, int destiny, ArrayList<Cell> current, ArrayList<ArrayList<Cell>> allbrokenLines,boolean keep_linked){
     	cell.temp=true;
-    	ArrayList<Cell> temp = disponible_voisins(cell,n);
+    	ArrayList<Cell> temp = disponible_voisins(cell,n,keep_linked);
     	ArrayList<Cell> current2 = new ArrayList<>();
     	if(n==0){
     		if(cell.clue==destiny){
@@ -208,36 +236,42 @@ public class Logipix{
 	    	current2.addAll(current); 
 	    	current2.add(cell);
     		for(int i=0; i < temp.size(); i++){
-	    		recursive(temp.get(i), n-1,destiny, current2, allbrokenLines);
+	    		recursive(temp.get(i), n-1,destiny, current2, allbrokenLines,keep_linked);
     		}
     	}
     	cell.temp=false;
     }
 
-    public ArrayList<Cell> disponible_voisins(Cell cell, int n){
+
+
+    public ArrayList<Cell> disponible_voisins(Cell cell, int n, boolean keep_linked){
     	ArrayList<Cell> disponible = new ArrayList<>();
     	if((cell.y+1) < sizeX){
-    		if(GameGrid[cell.x][cell.y+1].linked==false && GameGrid[cell.x][cell.y+1].temp==false){
-    			if(n==1) disponible.add(GameGrid[cell.x][cell.y+1]);
-    			else{ if(GameGrid[cell.x][cell.y+1].clue==0) disponible.add(GameGrid[cell.x][cell.y+1]); }
+    		if((GameGrid[cell.x][cell.y+1].linked==false || keep_linked)  && GameGrid[cell.x][cell.y+1].temp==false
+                && GameGrid[cell.x][cell.y+1].toujours_ocuppe==false){
+        			if(n==1) disponible.add(GameGrid[cell.x][cell.y+1]);
+        			else{ if(GameGrid[cell.x][cell.y+1].clue==0) disponible.add(GameGrid[cell.x][cell.y+1]); }
     		}
     	}
     	if((cell.x+1) < sizeY){
-    		if(GameGrid[cell.x+1][cell.y].linked==false && GameGrid[cell.x+1][cell.y].temp==false){
-    			if(n==1) disponible.add(GameGrid[cell.x+1][cell.y]);
-    			else{ if(GameGrid[cell.x+1][cell.y].clue==0) disponible.add(GameGrid[cell.x+1][cell.y]); }
+    		if((GameGrid[cell.x+1][cell.y].linked==false || keep_linked) && GameGrid[cell.x+1][cell.y].temp==false
+                && GameGrid[cell.x+1][cell.y].toujours_ocuppe==false){
+        			if(n==1) disponible.add(GameGrid[cell.x+1][cell.y]);
+        			else{ if(GameGrid[cell.x+1][cell.y].clue==0) disponible.add(GameGrid[cell.x+1][cell.y]); }
     		}
     	}
     	if((cell.x-1) >= 0){
-    		if(GameGrid[cell.x-1][cell.y].linked==false && GameGrid[cell.x-1][cell.y].temp==false){
-    			if(n==1) disponible.add(GameGrid[cell.x-1][cell.y]);
-    			else{ if(GameGrid[cell.x-1][cell.y].clue==0) disponible.add(GameGrid[cell.x-1][cell.y]); }
+    		if((GameGrid[cell.x-1][cell.y].linked==false || keep_linked) && GameGrid[cell.x-1][cell.y].temp==false
+                && GameGrid[cell.x-1][cell.y].toujours_ocuppe==false){
+        			if(n==1) disponible.add(GameGrid[cell.x-1][cell.y]);
+        			else{ if(GameGrid[cell.x-1][cell.y].clue==0) disponible.add(GameGrid[cell.x-1][cell.y]); }
     		}
     	}
     	if((cell.y-1) >= 0){
-    		if(GameGrid[cell.x][cell.y-1].linked==false && GameGrid[cell.x][cell.y-1].temp==false){
-    			if(n==1) disponible.add(GameGrid[cell.x][cell.y-1]);
-    			else{ if(GameGrid[cell.x][cell.y-1].clue==0) disponible.add(GameGrid[cell.x][cell.y-1]); }
+    		if((GameGrid[cell.x][cell.y-1].linked==false || keep_linked) && GameGrid[cell.x][cell.y-1].temp==false
+                && GameGrid[cell.x][cell.y-1].toujours_ocuppe==false){
+        			if(n==1) disponible.add(GameGrid[cell.x][cell.y-1]);
+        			else{ if(GameGrid[cell.x][cell.y-1].clue==0) disponible.add(GameGrid[cell.x][cell.y-1]); }
     		}
     	}
 
@@ -277,7 +311,7 @@ public class Logipix{
 	    					//System.out.println("aqui0:"+former.allbrokenlines.size());
 	    				}
 	    			}else{
-	    				former.allbrokenlines = AllPaths(former);
+	    				former.allbrokenlines = AllPaths(former,false);
                         //System.out.println("Former clue = " + former.clue + " tamanho = " + former.allbrokenlines.size());
 	    				if(former.allbrokenlines.size()==0){
 	    					removebrokenLine2(LastBrokenLine.peek());

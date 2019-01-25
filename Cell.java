@@ -6,7 +6,7 @@ public class Cell{
 	int Counter=0;
 	boolean temp= false;
 	boolean linked = false;
-
+	boolean toujours_ocuppe = false;
 	
 	ArrayList<ArrayList<Cell>> allbrokenlines;
 	Position pos1 = Position.EMPTY, pos2 = Position.EMPTY;
@@ -17,4 +17,5 @@ public class Cell{
 		this.clue = clue;
 		allbrokenlines = new ArrayList<>();
 	}
+	
 }
