@@ -20,10 +20,11 @@ public class GameInterface extends Application {
     @Override
     public void start(Stage stage) {
         Logipix logipix = new Logipix();
-        logipix.initialize("InputFiles/Man.txt");
+        String titulo;
+        logipix.initialize(titulo="InputFiles/Man.txt");
         //logipix.Backtracking();
         Scene scene = new Scene(generateGrid(logipix), logipix.sizeX*square, logipix.sizeY*square+27);
-        stage.setTitle("Logipix "+logipix.sizeX+"x"+logipix.sizeY);
+        stage.setTitle("Logipix "+logipix.sizeX+"x"+logipix.sizeY+ "  "+titulo);
         stage.setScene(scene);
         stage.show();
     }

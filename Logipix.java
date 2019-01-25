@@ -192,9 +192,9 @@ public class Logipix{
     	addBrokenLine2(b);
 		removebrokenLine2(b);
  
-    	ArrayList<ArrayList<Cell>> t = AllPaths(GameGrid[4][5], false);
+    	ArrayList<ArrayList<Cell>> t = AllPaths(GameGrid[7][11], false);
     	System.out.println(t.size());
-        cases_obligatories(GameGrid[4][5]);
+        cases_obligatories(GameGrid[7][11]);
 
     	if(i<t.size()){
     		addBrokenLine2((LastBrokenLine.push(t.get(i))));
