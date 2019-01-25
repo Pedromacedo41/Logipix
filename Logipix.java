@@ -14,6 +14,7 @@ public class Logipix{
 	ArrayList<Cell> OrderedCells;
     Stack<ArrayList<Cell>> LastBrokenLine;
 	Stack<BrokenLine> LastBrokenLine2;
+
 	int Counter=0, MemCounter;
 
 	public void initialize(String name){
@@ -240,6 +241,59 @@ public class Logipix{
     		}
     	}
     	cell.temp=false;
+    }
+
+    public ArrayList<BrokenLine> AllPaths2(Cell cell){
+        ArrayList<ArrayList<Position>> allbrokenLines = recursive2(cell,cell.clue-1, cell.clue, Position.EMPTY);
+        ArrayList<BrokenLine> AllBrokenLines = new ArrayList<>();
+        for(int i=0; i< allbrokenLines.size(); i++) {
+            allbrokenLines.get(i).remove(0);
+            AllBrokenLines.add(new BrokenLine(cell, allbrokenLines.get(i)));
+        }
+        return AllBrokenLines;
+    }
+
+    private ArrayList<ArrayList<Position>> recursive2(Cell cell, int n, int destiny, Position Lastrelative){
+        cell.temp=true;
+        cell.especial=true;
+        ArrayList<ArrayList<Position>> lines = new ArrayList<>();
+        if(n==0){
+            cell.temp=false;
+            if(cell.clue==destiny){
+                ArrayList<Position> last = new ArrayList<>();
+                last.add(Lastrelative);
+                lines.add((last));
+                return lines;
+            }
+        }else{
+            ArrayList<Cell> temp = disponible_voisins(cell,n);
+
+            for(int i=0; i < temp.size(); i++){
+                Cell ff = temp.get(i);
+                Position relative = Position.EMPTY;
+                if(ff.x> cell.x) relative= Position.DOWN;
+                if(ff.x< cell.x) relative= Position.UP;
+                if(ff.y< cell.y) relative= Position.LEFT;
+                if(ff.y> cell.y) relative= Position.RIGHT;
+
+                int k;
+                ArrayList<ArrayList<Position>> intermediaire;
+                if(ff.savedPaths.containsKey(k=Cell.hashPair(n-1,destiny))){
+                    intermediaire = ff.savedPaths.get(k);
+                }else{
+                    intermediaire= recursive2(ff,n-1,destiny, relative);
+                    //ff.savedPaths.put(k,intermediaire);
+                }
+                if(intermediaire.size()>0) lines.addAll(intermediaire);
+            }
+            if(lines.size()>0){
+                for(int j=0; j < lines.size(); j++){
+                    lines.get(j).add(0,Lastrelative);
+                }
+            }
+        }
+        cell.temp=false;
+        return lines;
     }
 
 

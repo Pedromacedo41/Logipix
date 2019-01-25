@@ -7,6 +7,7 @@ public class Cell{
 	boolean temp= false;
 	boolean linked = false;
 	boolean toujours_ocuppe = false;
+	Pair<Integer,Integer> currentBrokenLine;
 	
 	ArrayList<ArrayList<Cell>> allbrokenlines;
 	Position pos1 = Position.EMPTY, pos2 = Position.EMPTY;
