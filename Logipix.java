@@ -56,6 +56,9 @@ public class Logipix{
     	Cell temp =  brokenline.init;
     	Position temp2;
     	temp.linked = true;
+        temp.currentBrokenLine.setFirst(brokenline.init.x);
+        temp.currentBrokenLine.setSecond(brokenline.init.y);
+
     	temp.pos1 = brokenline.order.get(0);
     	for(int i=0; i< brokenline.order.size(); i++) {
     		temp2=brokenline.order.get(i);
@@ -63,23 +66,35 @@ public class Logipix{
     	    	temp = GameGrid[temp.x-1][temp.y];
     	    	temp.linked=true;
     	    	temp.pos2=Position.DOWN;
+                temp.currentBrokenLine.setFirst(brokenline.init.x);
+                temp.currentBrokenLine.setSecond(brokenline.init.y);
+
     	    	if(i<(brokenline.order.size()-1)) temp.pos1 = brokenline.order.get(i+1);
     	    }
     	    if(temp2==Position.DOWN){temp = GameGrid[temp.x+1][temp.y];
     	    	temp.linked=true;
     	    	temp.pos2=Position.UP;
+                temp.currentBrokenLine.setFirst(brokenline.init.x);
+                temp.currentBrokenLine.setSecond(brokenline.init.y);
+
     	    	if(i<(brokenline.order.size()-1)) temp.pos1 = brokenline.order.get(i+1);
     	    }
     	    if(temp2==Position.LEFT){
     	    	temp = GameGrid[temp.x][temp.y-1];
     	    	temp.linked=true;
     	    	temp.pos2=Position.RIGHT;
+                temp.currentBrokenLine.setFirst(brokenline.init.x);
+                temp.currentBrokenLine.setSecond(brokenline.init.y); 
+
     	    	if(i<(brokenline.order.size()-1)) temp.pos1 = brokenline.order.get(i+1);
     	    }
     	    if(temp2==Position.RIGHT){
     	    	temp = GameGrid[temp.x][temp.y+1];
     	    	temp.linked=true;
     	    	temp.pos2=Position.LEFT;
+                temp.currentBrokenLine.setFirst(brokenline.init.x);
+                temp.currentBrokenLine.setSecond(brokenline.init.y); 
+
     	    	if(i<(brokenline.order.size()-1)) temp.pos1 = brokenline.order.get(i+1);
     	    }
     	}
@@ -88,7 +103,9 @@ public class Logipix{
 
     private void addBrokenLine2(ArrayList<Cell> line){ //Create the links between the paths
     	for (int i=0; i < (line.size()-1) ; i++) {
-    	    line.get(i).linked = true;    		
+    	    line.get(i).linked = true;   
+            line.get(i).currentBrokenLine.setFirst(line.get(0).x);
+            line.get(i).currentBrokenLine.setSecond(line.get(0).y); 		
     		if(line.get(i).y != line.get(i+1).y){
     			if(line.get(i).y > line.get(i+1).y){
     				line.get(i).pos1 = Position.LEFT;
