@@ -255,7 +255,6 @@ public class Logipix{
 
     private ArrayList<ArrayList<Position>> recursive2(Cell cell, int n, int destiny, Position Lastrelative){
         cell.temp=true;
-        cell.especial=true;
         ArrayList<ArrayList<Position>> lines = new ArrayList<>();
         if(n==0){
             cell.temp=false;
@@ -266,7 +265,7 @@ public class Logipix{
                 return lines;
             }
         }else{
-            ArrayList<Cell> temp = disponible_voisins(cell,n);
+            ArrayList<Cell> temp = disponible_voisins(cell,n,false);
 
             for(int i=0; i < temp.size(); i++){
                 Cell ff = temp.get(i);
@@ -275,15 +274,7 @@ public class Logipix{
                 if(ff.x< cell.x) relative= Position.UP;
                 if(ff.y< cell.y) relative= Position.LEFT;
                 if(ff.y> cell.y) relative= Position.RIGHT;
-
-                int k;
-                ArrayList<ArrayList<Position>> intermediaire;
-                if(ff.savedPaths.containsKey(k=Cell.hashPair(n-1,destiny))){
-                    intermediaire = ff.savedPaths.get(k);
-                }else{
-                    intermediaire= recursive2(ff,n-1,destiny, relative);
-                    //ff.savedPaths.put(k,intermediaire);
-                }
+                ArrayList<ArrayList<Position>> intermediaire = recursive2(ff,n-1,destiny, relative);
                 if(intermediaire.size()>0) lines.addAll(intermediaire);
             }
             if(lines.size()>0){
