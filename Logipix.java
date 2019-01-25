@@ -15,6 +15,7 @@ public class Logipix{
     Stack<ArrayList<Cell>> LastBrokenLine;
 	Stack<BrokenLine> LastBrokenLine2;
     ArrayList<Cell> noVoisins;
+    HashMap<Cell, Integer> Cell_Order;
 
 	int Counter=0, MemCounter;
 
@@ -22,6 +23,7 @@ public class Logipix{
 		OrderedCells = new ArrayList<>();
         LastBrokenLine = new Stack<>();
         LastBrokenLine2 = new Stack<>();
+        Cell_Order = new HashMap<>();
 		read(name);
 	}
 	private void read(String name){
@@ -281,6 +283,14 @@ public class Logipix{
                 GameGrid[cell.x][cell.y-1].clue==0) disponible.add(GameGrid[cell.x-1][cell.y]); 
         }
         noVoisins = disponible;
+    }
+
+    public ArrayList<Cell> cells_to_removeLine(){
+        ArrayList<Cell> arr = new ArrayList<>();
+        for(int i=0; i < noVoisins.size(); i++){
+            arr.add(GameGrid[noVoisins.get(i).currentBrokenLine.getFirst()][noVoisins.get(i).currentBrokenLine.getSecond()]);
+        }
+        return arr;
     }
 
     public ArrayList<BrokenLine> AllPaths2(Cell cell){

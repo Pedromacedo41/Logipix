@@ -18,5 +18,9 @@ public class Cell{
 		this.clue = clue;
 		allbrokenlines = new ArrayList<>();
 	}
+
+	public int hashCode() {
+        return (new Pair(x,y)).hashCode();
+    }
 	
 }
