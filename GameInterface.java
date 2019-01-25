@@ -20,8 +20,11 @@ public class GameInterface extends Application {
     @Override
     public void start(Stage stage) {
         Logipix logipix = new Logipix();
-        logipix.initialize("InputFiles/LogiX.txt");
+        long iniTime = System.nanoTime();
+        logipix.initialize("InputFiles/Man.txt");
         logipix.Backtracking();
+        long endTime = System.nanoTime();
+        System.out.println("Total running time : " + (endTime - iniTime)/(1.0*1000000000) + " seconds");
         Scene scene = new Scene(generateGrid(logipix), logipix.sizeX*square, logipix.sizeY*square+27);
         stage.setTitle("Logipix "+logipix.sizeX+"x"+logipix.sizeY);
         stage.setScene(scene);
@@ -29,7 +32,10 @@ public class GameInterface extends Application {
     }
 
     public static void main(String[] args) throws FileNotFoundException {
+        
         launch();
+        
+        
     }
 
     private StackPane generateGrid(Logipix logipix){

@@ -150,6 +150,23 @@ public class Logipix{
     	line.get(line.size()-1).linked = false;
 	}
 
+    public void findDeadEnds(LinkedList<Cell> cells){
+        int lastClue = 2;
+        for (int i = MemCounter-1; lastClue != 1; i--){
+            Cell x = cells.get(i);
+            lastClue = x.clue;
+            ArrayList<ArrayList<Cell>> t  = AllPaths(x);
+
+            if (t.size() == 1){
+                
+                cells.remove(x);
+                
+                cells.addFirst(x);
+            
+            }
+        }
+    }
+
     public void example(int i){
 
     	/*
@@ -248,6 +265,7 @@ public class Logipix{
     public void Backtracking(){
     	Cell former;
         LastBrokenLine = new Stack<ArrayList<Cell>>();
+        findDeadEnds(orderedCells);
     	while(orderedCells.size()!=0){
     		former= orderedCells.peek();
                // System.out.println("Former clue " + former.clue +" Former counter "+ former.Counter);
