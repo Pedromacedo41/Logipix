@@ -14,6 +14,7 @@ public class Logipix{
 	ArrayList<Cell> OrderedCells;
     Stack<ArrayList<Cell>> LastBrokenLine;
 	Stack<BrokenLine> LastBrokenLine2;
+    ArrayList<Cell> noVoisins;
 
 	int Counter=0, MemCounter;
 
@@ -227,6 +228,7 @@ public class Logipix{
     	cell.temp=true;
     	ArrayList<Cell> temp = disponible_voisins(cell,n,keep_linked);
     	ArrayList<Cell> current2 = new ArrayList<>();
+        if(temp.size()==0) fill_noVoisins(cell);
     	if(n==0){
     		if(cell.clue==destiny){
     			current2.addAll(current); 
@@ -241,6 +243,27 @@ public class Logipix{
     		}
     	}
     	cell.temp=false;
+    }
+
+    private void fill_noVoisins(Cell cell){
+        ArrayList<Cell> disponible = new ArrayList<>();
+        if((cell.y+1) < sizeX){
+            if(GameGrid[cell.x][cell.y+1].temp==false && GameGrid[cell.x][cell.y+1].toujours_ocuppe==false && 
+                GameGrid[cell.x][cell.y+1].clue==0) disponible.add(GameGrid[cell.x][cell.y+1]); 
+        }
+        if((cell.x+1) < sizeY){
+            if(GameGrid[cell.x+1][cell.y].temp==false && GameGrid[cell.x+1][cell.y].toujours_ocuppe==false && 
+                GameGrid[cell.x+1][cell.y].clue==0) disponible.add(GameGrid[cell.x+1][cell.y]); 
+        }
+        if((cell.x-1) >= 0){
+            if(GameGrid[cell.x-1][cell.y].temp==false && GameGrid[cell.x-1][cell.y].toujours_ocuppe==false && 
+                GameGrid[cell.x-1][cell.y].clue==0) disponible.add(GameGrid[cell.x-1][cell.y]); 
+        }
+        if((cell.y-1) >= 0){
+            if(GameGrid[cell.x][cell.y-1].temp==false && GameGrid[cell.x][cell.y-1].toujours_ocuppe==false && 
+                GameGrid[cell.x][cell.y-1].clue==0) disponible.add(GameGrid[cell.x-1][cell.y]); 
+        }
+        noVoisins = disponible;
     }
 
     public ArrayList<BrokenLine> AllPaths2(Cell cell){
