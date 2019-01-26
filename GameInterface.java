@@ -21,12 +21,14 @@ public class GameInterface extends Application {
     public void start(Stage stage) {
         Logipix logipix = new Logipix();
         long iniTime = System.nanoTime();
-        logipix.initialize("InputFiles/Man.txt");
+        String titulo;
+        logipix.initialize(titulo="InputFiles/Man.txt");
         logipix.Backtracking();
         long endTime = System.nanoTime();
         System.out.println("Total running time : " + (endTime - iniTime)/(1.0*1000000000) + " seconds");
+
         Scene scene = new Scene(generateGrid(logipix), logipix.sizeX*square, logipix.sizeY*square+27);
-        stage.setTitle("Logipix "+logipix.sizeX+"x"+logipix.sizeY);
+        stage.setTitle("Logipix "+logipix.sizeX+"x"+logipix.sizeY+ "  "+titulo);
         stage.setScene(scene);
         stage.show();
     }
@@ -47,7 +49,8 @@ public class GameInterface extends Application {
                 public void handle(ActionEvent event) {
                     
                     if(logipix.LastBrokenLine!=null){
-                       logipix.removebrokenLine2(logipix.LastBrokenLine.pop());
+                        if(logipix.LastBrokenLine.size()!=0) logipix.removebrokenLine2(logipix.LastBrokenLine.pop());
+                       // logipix.Backtracking();
                     }
                     m.getChildren().remove(1);
                     logipix.example(cont());
@@ -87,6 +90,7 @@ public class GameInterface extends Application {
                 a.setFill(Color.WHITE);
 
                 if(logipix.GameGrid[i][j].linked) a.setFill(Color.AQUAMARINE);
+                if(logipix.GameGrid[i][j].toujours_ocuppe) a.setFill(Color.YELLOW);
 
                 if(logipix.GameGrid[i][j].linked){
                     
