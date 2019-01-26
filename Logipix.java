@@ -152,13 +152,13 @@ public class Logipix{
 
     public void findDeadEnds(LinkedList<Cell> cells){
         int lastClue = 2;
-        for (int i = MemCounter-1; lastClue != 1; i--){
+        for (int i = MemCounter-1; lastClue != 1 && i > 0; i--){
             Cell x = cells.get(i);
             lastClue = x.clue;
             ArrayList<ArrayList<Cell>> t  = AllPaths(x);
 
             if (t.size() == 1){
-                
+                i++;
                 cells.remove(x);
                 
                 cells.addFirst(x);
