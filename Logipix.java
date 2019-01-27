@@ -179,7 +179,7 @@ public class Logipix{
         for (int i = MemCounter-1; lastClue != 1 && i > 0; i--){
             Cell x = cells.get(i);
             lastClue = x.clue;
-            ArrayList<ArrayList<Cell>> t  = AllPaths(x);
+            ArrayList<ArrayList<Cell>> t  = AllPaths(x,false);
 
             if (t.size() == 1){
                 i++;
