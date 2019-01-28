@@ -9,7 +9,7 @@ public class Cell{
 	boolean toujours_ocuppe = false;
 	Pair<Integer,Integer> currentBrokenLine = new Pair(0,0);
 	
-	ArrayList<ArrayList<Cell>> allbrokenlines;
+	ArrayList<BrokenLine> allbrokenlines;
 	Position pos1 = Position.EMPTY, pos2 = Position.EMPTY;
 
 	Cell(int x, int y, int clue){

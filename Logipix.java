@@ -12,18 +12,16 @@ public class Logipix{
 	int sizeX, sizeY;
 	LinkedList<Cell> orderedCells;
 	ArrayList<Cell> OrderedCells;
-    Stack<ArrayList<Cell>> LastBrokenLine;
-	Stack<BrokenLine> LastBrokenLine2;
+	Stack<BrokenLine> Last_brokenLine;
     ArrayList<Cell> noVoisins;
-    HashMap<Cell, Integer> Cell_Order;
+    HashSet<Pair>  interrupting_Cells;
 
 	int Counter=0, MemCounter;
 
 	public void initialize(String name){
 		OrderedCells = new ArrayList<>();
-        LastBrokenLine = new Stack<>();
-        LastBrokenLine2 = new Stack<>();
-        Cell_Order = new HashMap<>();
+        Last_brokenLine = new Stack<>();
+        interrupting_Cells = new HashSet<>();
 		read(name);
 	}
 	private void read(String name){
@@ -72,6 +70,7 @@ public class Logipix{
                 temp.currentBrokenLine.setSecond(brokenline.init.y);
 
     	    	if(i<(brokenline.order.size()-1)) temp.pos1 = brokenline.order.get(i+1);
+                if(brokenline.order.size()-1==i) brokenline.last=temp;
     	    }
     	    if(temp2==Position.DOWN){temp = GameGrid[temp.x+1][temp.y];
     	    	temp.linked=true;
@@ -80,6 +79,7 @@ public class Logipix{
                 temp.currentBrokenLine.setSecond(brokenline.init.y);
 
     	    	if(i<(brokenline.order.size()-1)) temp.pos1 = brokenline.order.get(i+1);
+                if(brokenline.order.size()-1==i) brokenline.last=temp;
     	    }
     	    if(temp2==Position.LEFT){
     	    	temp = GameGrid[temp.x][temp.y-1];
@@ -89,6 +89,7 @@ public class Logipix{
                 temp.currentBrokenLine.setSecond(brokenline.init.y); 
 
     	    	if(i<(brokenline.order.size()-1)) temp.pos1 = brokenline.order.get(i+1);
+                if(brokenline.order.size()-1==i) brokenline.last=temp;
     	    }
     	    if(temp2==Position.RIGHT){
     	    	temp = GameGrid[temp.x][temp.y+1];
@@ -98,40 +99,38 @@ public class Logipix{
                 temp.currentBrokenLine.setSecond(brokenline.init.y); 
 
     	    	if(i<(brokenline.order.size()-1)) temp.pos1 = brokenline.order.get(i+1);
+                if(brokenline.order.size()-1==i) brokenline.last=temp;
     	    }
     	}
     	
     }
+    public ArrayList<Cell> BrokenLinesCells(BrokenLine brokenline){ //Dado uma lista de comandos, marcam as celulas
+        Cell temp =  brokenline.init;
+        ArrayList<Cell> list = new ArrayList<>();
+        list.add(temp);
+        for(int i=0; i< brokenline.order.size(); i++) {
+            Position temp2=brokenline.order.get(i);
+            if(temp2==Position.UP) {
+                temp = GameGrid[temp.x-1][temp.y];
+                list.add(temp);
+            }
+            if(temp2==Position.DOWN){temp = GameGrid[temp.x+1][temp.y];
+                list.add(temp);
+            }
+            if(temp2==Position.LEFT){
+                temp = GameGrid[temp.x][temp.y-1];
+                list.add(temp);
+            }
+            if(temp2==Position.RIGHT){
+                temp = GameGrid[temp.x][temp.y+1];
+                list.add(temp);
+            }
+        }
+        return list;
+        
+    }
 
-    private void addBrokenLine2(ArrayList<Cell> line){ //Create the links between the paths
-    	for (int i=0; i < (line.size()-1) ; i++) {
-    	    line.get(i).linked = true;   
-            line.get(i).currentBrokenLine.setFirst(line.get(0).x);
-            line.get(i).currentBrokenLine.setSecond(line.get(0).y); 		
-    		if(line.get(i).y != line.get(i+1).y){
-    			if(line.get(i).y > line.get(i+1).y){
-    				line.get(i).pos1 = Position.LEFT;
-    				line.get(i+1).pos2 = Position.RIGHT;
-    			} 
-    			else{
-    				line.get(i).pos1 = Position.RIGHT;
-    				line.get(i+1).pos2 = Position.LEFT;
-    			} 
-    		}else{
-    			if(line.get(i).x > line.get(i+1).x){
-    				line.get(i).pos1= Position.UP;
-    				line.get(i+1).pos2= Position.DOWN;
-    			} 
-    			else{
-    				line.get(i).pos1 = Position.DOWN;
-    				line.get(i+1).pos2 = Position.UP;
-    			} 
-    		}
-    	}
-    	line.get(line.size()-1).linked = true;
-	}
-
-    public void removebrokenLine(BrokenLine brokenline){ //See it later
+    public void removebrokenLine(BrokenLine brokenline){ 
     	Cell temp =  brokenline.init;
     	Position temp2;
     	temp.linked = false;
@@ -165,22 +164,12 @@ public class Logipix{
     	
     }
 
-    public void removebrokenLine2(ArrayList<Cell> line){ //Removing a broken line 
-    	for (int i=0; i < (line.size()-1) ; i++) {
-    	    line.get(i).linked = false;    		
-    		line.get(i).pos1 = Position.EMPTY;
-    		line.get(i+1).pos2 = Position.EMPTY;
-    	}
-    	line.get(line.size()-1).linked = false;
-	}
-
     public void findDeadEnds(LinkedList<Cell> cells){
         int lastClue = 2;
         for (int i = MemCounter-1; lastClue != 1 && i > 0; i--){
             Cell x = cells.get(i);
             lastClue = x.clue;
-            ArrayList<ArrayList<Cell>> t  = AllPaths(x,false);
-
+            ArrayList<BrokenLine> t  = AllPaths(x,false);
             if (t.size() == 1){
                 i++;
                 cells.remove(x);
@@ -192,49 +181,23 @@ public class Logipix{
     }
 
     public void example(int i){
-
-    	/*
-    	ArrayList<Position> order1 = new ArrayList<>();
-    	order1.add(Position.RIGHT);
-    	order1.add(Position.RIGHT);
-    	order1.add(Position.UP);
-    	BrokenLine example = new BrokenLine(GameGrid[8][0],order1);
-    	//addBrokenLine(example);*/
-
-    	ArrayList<Cell> b = new ArrayList<>();
-    	b.add(GameGrid[8][0]);
-    	b.add(GameGrid[8][1]);
-    	b.add(GameGrid[8][2]);
-    	b.add(GameGrid[7][2]);
-    	addBrokenLine2(b);
-		removebrokenLine2(b);
- 
-    	ArrayList<ArrayList<Cell>> t = AllPaths(GameGrid[7][11], false);
-    	System.out.println(t.size());
-        cases_obligatories(GameGrid[7][11]);
+        ArrayList<BrokenLine> t = AllPaths(GameGrid[11][0],false);
 
     	if(i<t.size()){
-    		addBrokenLine2((LastBrokenLine.push(t.get(i))));
+    		addBrokenLine((Last_brokenLine.push(t.get(i))));
+            ArrayList<BrokenLine> t2 = AllPaths(GameGrid[9][2],false);
+            System.out.println(t2.size());  
     	} 
-
     }
 
-    private boolean compareBrokenLines(ArrayList<Cell> a1, ArrayList<Cell> a2){ 
-    	for (int i=0; i < a1.size() ; i++ ) {
-    		if(a1.get(i)!=a2.get(i)){
-    			return false;
-    		}
-    	}
-    	return true;
-    }
-
-    private void cases_obligatories(Cell cell){
-          ArrayList<ArrayList<Cell>> t=  AllPaths(cell,true);
-          int size = t.size(), lenght = t.get(0).size();
+    public void cases_obligatories(Cell cell){
+          ArrayList<BrokenLine> t=  AllPaths(cell, true);
+          int size = t.size(), lenght = t.get(0).order.size()+1;
           HashMap<Pair,Integer> casas = new HashMap<>();
           for(int i=0; i < size; i++){
+                ArrayList<Cell> t2 = BrokenLinesCells(t.get(i));
                 for(int j=0; j< lenght; j++){
-                      Pair<Integer, Integer> p1 = new Pair<Integer,Integer>(t.get(i).get(j).x,t.get(i).get(j).y);
+                      Pair<Integer, Integer> p1 = new Pair<Integer,Integer>(t2.get(j).x,t2.get(j).y);
                       if(casas.containsKey(p1))  casas.put(p1, casas.get(p1)+1);
                       else casas.put(p1,1);
                 }
@@ -246,60 +209,26 @@ public class Logipix{
             Map.Entry mentry = (Map.Entry)iterator.next();
             if((int) mentry.getValue()==size){
                 Pair p2 =(Pair)mentry.getKey();
-                if(GameGrid[(int) p2.getFirst()][(int) p2.getSecond()].clue==0) 
-                    GameGrid[(int) p2.getFirst()][(int) p2.getSecond()].toujours_ocuppe = true;
+                GameGrid[(int) p2.getFirst()][(int) p2.getSecond()].toujours_ocuppe = true;
             }
         }
     }
 
-
-    public ArrayList<ArrayList<Cell>> AllPaths(Cell cell,boolean keep_linked){
-    	ArrayList<ArrayList<Cell>> allbrokenLines = new ArrayList<>();
-    	ArrayList<Cell> current = new ArrayList<>();
-       	recursive(cell,cell.clue-1, cell.clue, current, allbrokenLines,keep_linked);
-    	return allbrokenLines;
-    }
-
-    private void recursive(Cell cell, int n, int destiny, ArrayList<Cell> current, ArrayList<ArrayList<Cell>> allbrokenLines,boolean keep_linked){
-    	cell.temp=true;
-    	ArrayList<Cell> temp = disponible_voisins(cell,n,keep_linked);
-    	ArrayList<Cell> current2 = new ArrayList<>();
-        if(temp.size()==0) fill_noVoisins(cell);
-    	if(n==0){
-    		if(cell.clue==destiny){
-    			current2.addAll(current); 
-    			current2.add(cell);
-    			allbrokenLines.add(current2);
-    		}
-    	}else{
-	    	current2.addAll(current); 
-	    	current2.add(cell);
-    		for(int i=0; i < temp.size(); i++){
-	    		recursive(temp.get(i), n-1,destiny, current2, allbrokenLines,keep_linked);
-    		}
-    	}
-    	cell.temp=false;
-    }
-
-    private void fill_noVoisins(Cell cell){
+    private ArrayList<Cell> fill_noVoisins(Cell cell){
         ArrayList<Cell> disponible = new ArrayList<>();
         if((cell.y+1) < sizeX){
-            if(GameGrid[cell.x][cell.y+1].temp==false && GameGrid[cell.x][cell.y+1].toujours_ocuppe==false && 
-                GameGrid[cell.x][cell.y+1].clue==0) disponible.add(GameGrid[cell.x][cell.y+1]); 
+            if(GameGrid[cell.x][cell.y+1].linked==true && GameGrid[cell.x][cell.y+1].clue==0) disponible.add(GameGrid[cell.x][cell.y+1]); 
         }
         if((cell.x+1) < sizeY){
-            if(GameGrid[cell.x+1][cell.y].temp==false && GameGrid[cell.x+1][cell.y].toujours_ocuppe==false && 
-                GameGrid[cell.x+1][cell.y].clue==0) disponible.add(GameGrid[cell.x+1][cell.y]); 
+            if(GameGrid[cell.x+1][cell.y].linked==true && GameGrid[cell.x+1][cell.y].clue==0) disponible.add(GameGrid[cell.x+1][cell.y]); 
         }
         if((cell.x-1) >= 0){
-            if(GameGrid[cell.x-1][cell.y].temp==false && GameGrid[cell.x-1][cell.y].toujours_ocuppe==false && 
-                GameGrid[cell.x-1][cell.y].clue==0) disponible.add(GameGrid[cell.x-1][cell.y]); 
+            if(GameGrid[cell.x-1][cell.y].linked==true && GameGrid[cell.x-1][cell.y].clue==0) disponible.add(GameGrid[cell.x-1][cell.y]); 
         }
         if((cell.y-1) >= 0){
-            if(GameGrid[cell.x][cell.y-1].temp==false && GameGrid[cell.x][cell.y-1].toujours_ocuppe==false && 
-                GameGrid[cell.x][cell.y-1].clue==0) disponible.add(GameGrid[cell.x-1][cell.y]); 
+            if(GameGrid[cell.x][cell.y-1].linked==true && GameGrid[cell.x][cell.y-1].clue==0) disponible.add(GameGrid[cell.x-1][cell.y]); 
         }
-        noVoisins = disponible;
+        return disponible;
     }
 
     public ArrayList<Cell> cells_to_removeLine(){
@@ -310,8 +239,17 @@ public class Logipix{
         return arr;
     }
 
-    public ArrayList<BrokenLine> AllPaths2(Cell cell){
-        ArrayList<ArrayList<Position>> allbrokenLines = recursive2(cell,cell.clue-1, cell.clue, Position.EMPTY);
+    private void addInterruptionCells(Cell cell){
+        ArrayList<Cell> interrupting_voisins = fill_noVoisins(cell);
+        for(int i=0; i< interrupting_Cells.size(); i++){
+            Cell temp= interrupting_voisins.get(i);
+            Pair<Integer, Integer> p1 = new Pair<Integer,Integer>(temp.x,temp.y);
+            interrupting_Cells.add(p1);
+        }
+    }
+
+    public ArrayList<BrokenLine> AllPaths(Cell cell, boolean keep_linked){
+        ArrayList<ArrayList<Position>> allbrokenLines = recursive(cell,cell.clue-1, cell.clue, Position.EMPTY,keep_linked);
         ArrayList<BrokenLine> AllBrokenLines = new ArrayList<>();
         for(int i=0; i< allbrokenLines.size(); i++) {
             allbrokenLines.get(i).remove(0);
@@ -320,9 +258,10 @@ public class Logipix{
         return AllBrokenLines;
     }
 
-    private ArrayList<ArrayList<Position>> recursive2(Cell cell, int n, int destiny, Position Lastrelative){
+    private ArrayList<ArrayList<Position>> recursive(Cell cell, int n, int destiny, Position Lastrelative, boolean keep_linked){
         cell.temp=true;
         ArrayList<ArrayList<Position>> lines = new ArrayList<>();
+        addInterruptionCells(cell);
         if(n==0){
             cell.temp=false;
             if(cell.clue==destiny){
@@ -332,8 +271,7 @@ public class Logipix{
                 return lines;
             }
         }else{
-            ArrayList<Cell> temp = disponible_voisins(cell,n,false);
-
+            ArrayList<Cell> temp = disponible_voisins(cell,n,keep_linked);
             for(int i=0; i < temp.size(); i++){
                 Cell ff = temp.get(i);
                 Position relative = Position.EMPTY;
@@ -341,7 +279,7 @@ public class Logipix{
                 if(ff.x< cell.x) relative= Position.UP;
                 if(ff.y< cell.y) relative= Position.LEFT;
                 if(ff.y> cell.y) relative= Position.RIGHT;
-                ArrayList<ArrayList<Position>> intermediaire = recursive2(ff,n-1,destiny, relative);
+                ArrayList<ArrayList<Position>> intermediaire = recursive(ff,n-1,destiny, relative, keep_linked);
                 if(intermediaire.size()>0) lines.addAll(intermediaire);
             }
             if(lines.size()>0){
@@ -353,8 +291,6 @@ public class Logipix{
         cell.temp=false;
         return lines;
     }
-
-
 
     public ArrayList<Cell> disponible_voisins(Cell cell, int n, boolean keep_linked){
     	ArrayList<Cell> disponible = new ArrayList<>();
@@ -393,7 +329,7 @@ public class Logipix{
 
     public void Backtracking(){
     	Cell former;
-        LastBrokenLine = new Stack<ArrayList<Cell>>();
+        Last_brokenLine = new Stack<>();
         findDeadEnds(orderedCells);
     	while(orderedCells.size()!=0){
     		former= orderedCells.peek();
@@ -404,40 +340,40 @@ public class Logipix{
     			}else{
     				if(former.Counter!=0){
 	    				if((former.allbrokenlines.size()-1)<former.Counter){
-	    					removebrokenLine2(LastBrokenLine.peek());
+	    					removebrokenLine(Last_brokenLine.peek());
 
 	    					former.Counter=0;
                             //System.out.println("PASSEI AQUI CARAIO ");
-                            LastBrokenLine.peek().get(LastBrokenLine.peek().size()-1).Counter = 0;
+                            Last_brokenLine.peek().last.Counter = 0;
 
                             //System.out.println(LastBrokenLine.peek().get(LastBrokenLine.peek().size()-1).clue + " oi");
-                            orderedCells.addFirst(LastBrokenLine.peek().get(LastBrokenLine.peek().size()-1));
-	    				    orderedCells.addFirst(LastBrokenLine.peek().get(0));
+                            orderedCells.addFirst(Last_brokenLine.peek().last);
+	    				    orderedCells.addFirst(Last_brokenLine.peek().init);
 	    					
 	    					//System.out.println("aqui2:"+former.x+","+former.y);
-                            LastBrokenLine.pop();
+                            Last_brokenLine.pop();
 	    				}else{
-	    					addBrokenLine2(LastBrokenLine.push(former.allbrokenlines.get(former.Counter)));
+	    					addBrokenLine(Last_brokenLine.push(former.allbrokenlines.get(former.Counter)));
 	    					former.Counter++; 
 	    					orderedCells.poll(); 
-	    					orderedCells.remove(LastBrokenLine.peek().get(LastBrokenLine.peek().size()-1));
+	    					orderedCells.remove(Last_brokenLine.peek().last);
 	    					//System.out.println("aqui0:"+former.allbrokenlines.size());
 	    				}
 	    			}else{
 	    				former.allbrokenlines = AllPaths(former,false);
                         //System.out.println("Former clue = " + former.clue + " tamanho = " + former.allbrokenlines.size());
 	    				if(former.allbrokenlines.size()==0){
-	    					removebrokenLine2(LastBrokenLine.peek());
-                            orderedCells.addFirst(LastBrokenLine.peek().get(LastBrokenLine.peek().size()-1));
-	    					orderedCells.addFirst(LastBrokenLine.peek().get(0));
+	    					removebrokenLine(Last_brokenLine.peek());
+                            orderedCells.addFirst(Last_brokenLine.peek().last);
+	    					orderedCells.addFirst(Last_brokenLine.peek().init);
 	    					
                             //System.out.println("passei por aqui");
-                            LastBrokenLine.pop();
+                            Last_brokenLine.pop();
 	    				}else{
-	    					addBrokenLine2(LastBrokenLine.push(former.allbrokenlines.get(former.Counter)));
+	    					addBrokenLine(Last_brokenLine.push(former.allbrokenlines.get(former.Counter)));
 	    					former.Counter++; 
 	    					orderedCells.poll(); 
-	    					orderedCells.remove(LastBrokenLine.peek().get(LastBrokenLine.peek().size()-1));
+	    					orderedCells.remove(Last_brokenLine.peek().last);
 	    					//System.out.println("ll"+former.allbrokenlines.size()+"("+former.x+","+former.y+")");
 	    				}
 	    			}
@@ -446,8 +382,6 @@ public class Logipix{
     }
 
  }
-//consertar os pares 
-
 
 class mycomparator2 implements Comparator<Cell>
 {

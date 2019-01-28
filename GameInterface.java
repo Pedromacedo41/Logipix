@@ -23,7 +23,7 @@ public class GameInterface extends Application {
         long iniTime = System.nanoTime();
         String titulo;
         logipix.initialize(titulo="InputFiles/Man.txt");
-        logipix.Backtracking();
+        //logipix.cases_obligatories(logipix.GameGrid[9][2]);
         long endTime = System.nanoTime();
         System.out.println("Total running time : " + (endTime - iniTime)/(1.0*1000000000) + " seconds");
 
@@ -34,10 +34,7 @@ public class GameInterface extends Application {
     }
 
     public static void main(String[] args) throws FileNotFoundException {
-        
         launch();
-        
-        
     }
 
     private StackPane generateGrid(Logipix logipix){
@@ -48,9 +45,8 @@ public class GameInterface extends Application {
         btn.setOnAction(new EventHandler<ActionEvent>() {
                 public void handle(ActionEvent event) {
                     
-                    if(logipix.LastBrokenLine!=null){
-                        if(logipix.LastBrokenLine.size()!=0) logipix.removebrokenLine2(logipix.LastBrokenLine.pop());
-                       // logipix.Backtracking();
+                    if(logipix.Last_brokenLine.size()>0){
+                         logipix.removebrokenLine(logipix.Last_brokenLine.pop());
                     }
                     m.getChildren().remove(1);
                     logipix.example(cont());
@@ -67,7 +63,7 @@ public class GameInterface extends Application {
         return cont++;
     }
 
-    private HBox draw(Logipix logipix){
+    private HBox draw(Logipix logipix){ 
         VBox m = new VBox();
 
         for(int i=0; i < logipix.sizeY; i++){
