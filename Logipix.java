@@ -231,8 +231,10 @@ public class Logipix{
                 Pair p2 =(Pair)mentry.getKey();
                 Cell temp = GameGrid[(int) p2.getFirst()][(int) p2.getSecond()];
                 temp.toujours_ocuppe = true;
-                Cell origin = GameGrid[temp.currentBrokenLine.getFirst()][temp.currentBrokenLine.getSecond()];
-                origins_brokenline.add(new Pair <Integer,Integer>(origin.x,origin.y));
+                if(temp.linked && temp.clue!=0){
+                    Cell origin = GameGrid[temp.currentBrokenLine.getFirst()][temp.currentBrokenLine.getSecond()];
+                    origins_brokenline.add(new Pair <Integer,Integer>(origin.x,origin.y));
+                }
             }
         }
 
