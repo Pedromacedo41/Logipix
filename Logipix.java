@@ -180,17 +180,37 @@ public class Logipix{
         }
     }
 
-    public void example(int i){
+    public void example(){
         ArrayList<BrokenLine> t = AllPaths(GameGrid[11][0],false);
+    	addBrokenLine((Last_brokenLine.push(t.get(0))));
+        interrupting_Cells = new HashSet<>();
 
-    	if(i<t.size()){
-    		addBrokenLine((Last_brokenLine.push(t.get(i))));
-            ArrayList<BrokenLine> t2 = AllPaths(GameGrid[9][2],false);
-            System.out.println(t2.size());  
-    	} 
+        ArrayList<BrokenLine> t5 = AllPaths(GameGrid[10][5],false);
+        addBrokenLine((Last_brokenLine.push(t5.get(0))));
+        interrupting_Cells = new HashSet<>();
+
+        ArrayList<BrokenLine> t6 = AllPaths(GameGrid[11][6],false);
+        addBrokenLine((Last_brokenLine.push(t6.get(22))));
+        interrupting_Cells = new HashSet<>();
+
+        ArrayList<BrokenLine> t2 = AllPaths(GameGrid[9][2],false);
+        //tentativa que vai falhar
+        System.out.println(t2.size());
+        if(t2.size()==0){
+            ArrayList<Cell> cellstoremove= cells_to_removeLine();
+            System.out.println(cellstoremove.size());
+            for(int i =0; i < cellstoremove.size(); i++){
+                System.out.println("Cell("+cellstoremove.get(i).x+","+cellstoremove.get(i).y+")");
+            }
+        }
+    
+
     }
 
-    public void cases_obligatories(Cell cell){
+    public ArrayList<Cell> cases_obligatories(Cell cell){
+          ArrayList<Cell> arr = new ArrayList<>();
+          HashSet<Pair> origins_brokenline = new HashSet<>();
+
           ArrayList<BrokenLine> t=  AllPaths(cell, true);
           int size = t.size(), lenght = t.get(0).order.size()+1;
           HashMap<Pair,Integer> casas = new HashMap<>();
@@ -209,15 +229,28 @@ public class Logipix{
             Map.Entry mentry = (Map.Entry)iterator.next();
             if((int) mentry.getValue()==size){
                 Pair p2 =(Pair)mentry.getKey();
-                GameGrid[(int) p2.getFirst()][(int) p2.getSecond()].toujours_ocuppe = true;
+                Cell temp = GameGrid[(int) p2.getFirst()][(int) p2.getSecond()];
+                temp.toujours_ocuppe = true;
+                Cell origin = GameGrid[temp.currentBrokenLine.getFirst()][temp.currentBrokenLine.getSecond()];
+                origins_brokenline.add(new Pair <Integer,Integer>(origin.x,origin.y));
             }
         }
+
+        Iterator<Pair> j = origins_brokenline.iterator();
+        while (j.hasNext()) {
+            Pair s = j.next();
+            Cell temp = GameGrid[(int) s.getFirst()][(int) s.getSecond()];
+            arr.add(temp);
+        }
+        Collections.sort(arr, new mycomparator2());
+        interrupting_Cells = new HashSet<>();
+        return arr;
     }
 
     private ArrayList<Cell> fill_noVoisins(Cell cell){
         ArrayList<Cell> disponible = new ArrayList<>();
         if((cell.y+1) < sizeX){
-            if(GameGrid[cell.x][cell.y+1].linked==true && GameGrid[cell.x][cell.y+1].clue==0) disponible.add(GameGrid[cell.x][cell.y+1]); 
+            if(GameGrid[cell.x][cell.y+1].linked==true && GameGrid[cell.x][cell.y+1].clue==0) disponible.add(GameGrid[cell.x][cell.y+1]);
         }
         if((cell.x+1) < sizeY){
             if(GameGrid[cell.x+1][cell.y].linked==true && GameGrid[cell.x+1][cell.y].clue==0) disponible.add(GameGrid[cell.x+1][cell.y]); 
@@ -226,25 +259,38 @@ public class Logipix{
             if(GameGrid[cell.x-1][cell.y].linked==true && GameGrid[cell.x-1][cell.y].clue==0) disponible.add(GameGrid[cell.x-1][cell.y]); 
         }
         if((cell.y-1) >= 0){
-            if(GameGrid[cell.x][cell.y-1].linked==true && GameGrid[cell.x][cell.y-1].clue==0) disponible.add(GameGrid[cell.x-1][cell.y]); 
+            if(GameGrid[cell.x][cell.y-1].linked==true && GameGrid[cell.x][cell.y-1].clue==0) disponible.add(GameGrid[cell.x][cell.y-1]); 
         }
         return disponible;
     }
 
     public ArrayList<Cell> cells_to_removeLine(){
         ArrayList<Cell> arr = new ArrayList<>();
-        for(int i=0; i < noVoisins.size(); i++){
-            arr.add(GameGrid[noVoisins.get(i).currentBrokenLine.getFirst()][noVoisins.get(i).currentBrokenLine.getSecond()]);
+        HashSet<Pair> origins_brokenline = new HashSet<>();
+        Iterator<Pair> i = interrupting_Cells.iterator();
+        while (i.hasNext()) {
+            Pair s = i.next();
+            Cell temp = GameGrid[(int) s.getFirst()][(int) s.getSecond()];
+            Cell origin = GameGrid[temp.currentBrokenLine.getFirst()][temp.currentBrokenLine.getSecond()];
+            origins_brokenline.add(new Pair <Integer,Integer>(origin.x,origin.y));
         }
+
+        Iterator<Pair> j = origins_brokenline.iterator();
+        while (j.hasNext()) {
+            Pair s = j.next();
+            Cell temp = GameGrid[(int) s.getFirst()][(int) s.getSecond()];
+            arr.add(temp);
+        }
+        Collections.sort(arr, new mycomparator3());
+        interrupting_Cells = new HashSet<>();
         return arr;
     }
 
     private void addInterruptionCells(Cell cell){
         ArrayList<Cell> interrupting_voisins = fill_noVoisins(cell);
-        for(int i=0; i< interrupting_Cells.size(); i++){
+        for(int i=0; i< interrupting_voisins.size(); i++){
             Cell temp= interrupting_voisins.get(i);
-            Pair<Integer, Integer> p1 = new Pair<Integer,Integer>(temp.x,temp.y);
-            interrupting_Cells.add(p1);
+            interrupting_Cells.add( new Pair<Integer,Integer>(temp.x,temp.y));
         }
     }
 
@@ -261,7 +307,6 @@ public class Logipix{
     private ArrayList<ArrayList<Position>> recursive(Cell cell, int n, int destiny, Position Lastrelative, boolean keep_linked){
         cell.temp=true;
         ArrayList<ArrayList<Position>> lines = new ArrayList<>();
-        addInterruptionCells(cell);
         if(n==0){
             cell.temp=false;
             if(cell.clue==destiny){
@@ -271,6 +316,7 @@ public class Logipix{
                 return lines;
             }
         }else{
+            addInterruptionCells(cell);
             ArrayList<Cell> temp = disponible_voisins(cell,n,keep_linked);
             for(int i=0; i < temp.size(); i++){
                 Cell ff = temp.get(i);
@@ -389,5 +435,14 @@ class mycomparator2 implements Comparator<Cell>
    public int compare(Cell a, Cell b)
    {
       return a.clue - b.clue;
+   }
+}
+
+class mycomparator3 implements Comparator<Cell>
+{
+   @Override
+   public int compare(Cell a, Cell b)
+   {
+      return b.clue - a.clue;
    }
 }

@@ -23,7 +23,7 @@ public class GameInterface extends Application {
         long iniTime = System.nanoTime();
         String titulo;
         logipix.initialize(titulo="InputFiles/Man.txt");
-        //logipix.cases_obligatories(logipix.GameGrid[9][2]);
+        logipix.example();
         long endTime = System.nanoTime();
         System.out.println("Total running time : " + (endTime - iniTime)/(1.0*1000000000) + " seconds");
 
@@ -49,7 +49,7 @@ public class GameInterface extends Application {
                          logipix.removebrokenLine(logipix.Last_brokenLine.pop());
                     }
                     m.getChildren().remove(1);
-                    logipix.example(cont());
+                    //logipix.example(cont());
                     m.getChildren().add(draw(logipix)); 
             }
         });
