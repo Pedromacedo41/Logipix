@@ -104,7 +104,7 @@ public class Logipix{
     	}
     	
     }
-    public ArrayList<Cell> BrokenLinesCells(BrokenLine brokenline){ //Dado uma lista de comandos, marcam as celulas
+    public ArrayList<Cell> BrokenLinesCells(BrokenLine brokenline){ 
         Cell temp =  brokenline.init;
         ArrayList<Cell> list = new ArrayList<>();
         list.add(temp);
