@@ -8,6 +8,10 @@ public class Cell{
 	boolean linked = false;
 	boolean toujours_ocuppe = false;
 	Pair<Integer,Integer> currentBrokenLine = new Pair(0,0);
+	ArrayList<Cell> mandatory_cases;
+	int Counter_removeLine;
+
+
 	
 	ArrayList<BrokenLine> allbrokenlines;
 	Position pos1 = Position.EMPTY, pos2 = Position.EMPTY;
@@ -17,6 +21,15 @@ public class Cell{
 		this.y = y;
 		this.clue = clue;
 		allbrokenlines = new ArrayList<>();
+		mandatory_cases = new ArrayList<>();
+		Counter_removeLine = 0;
+	}
+
+	public void status_changing (boolean b){
+		for (Cell x : mandatory_cases){
+			x.toujours_ocuppe = b;
+		}
+
 	}
 
 	public int hashCode() {

@@ -23,7 +23,9 @@ public class GameInterface extends Application {
         long iniTime = System.nanoTime();
         String titulo;
         logipix.initialize(titulo="InputFiles/Man.txt");
-        logipix.example();
+        //logipix.example();
+        //logipix.Backtracking();
+        logipix.Backtracking2();
         long endTime = System.nanoTime();
         System.out.println("Total running time : " + (endTime - iniTime)/(1.0*1000000000) + " seconds");
 
