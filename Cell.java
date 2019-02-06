@@ -10,6 +10,8 @@ public class Cell{
 	Pair<Integer,Integer> currentBrokenLine = new Pair(0,0);
 	ArrayList<Cell> mandatory_cases;
 	int Counter_removeLine;
+	int Counter_entering_order=0;
+	HashSet<Pair> tested_returns;
 
 
 	
@@ -22,6 +24,7 @@ public class Cell{
 		this.clue = clue;
 		allbrokenlines = new ArrayList<>();
 		mandatory_cases = new ArrayList<>();
+		tested_returns = new HashSet<>();
 		Counter_removeLine = 0;
 	}
 

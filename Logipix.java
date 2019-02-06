@@ -15,6 +15,11 @@ public class Logipix{
 	Stack<BrokenLine> Last_brokenLine;
     ArrayList<Cell> noVoisins;
     HashSet<Pair>  interrupting_Cells;
+    Boolean BackTracking_isReversed = false;
+    Stack<Cell> Potential_cells_to_remove;
+    Cell Current_failed=null;
+    boolean jump; 
+    int a=0;
 
 	int Counter=0, MemCounter;
 
@@ -22,6 +27,7 @@ public class Logipix{
 		OrderedCells = new ArrayList<>();
         Last_brokenLine = new Stack<>();
         interrupting_Cells = new HashSet<>();
+        Potential_cells_to_remove = new Stack<>();
 		read(name);
 	}
 	private void read(String name){
@@ -60,6 +66,7 @@ public class Logipix{
         temp.currentBrokenLine.setSecond(brokenline.init.y);
 
     	temp.pos1 = brokenline.order.get(0);
+        temp.pos2= Position.EMPTY;
     	for(int i=0; i< brokenline.order.size(); i++) {
     		temp2=brokenline.order.get(i);
     	    if(temp2==Position.UP) {
@@ -135,7 +142,8 @@ public class Logipix{
     	Position temp2;
     	temp.linked = false;
         temp.currentBrokenLine = new Pair(0,0);
-    	temp.pos1 = Position.EMPTY;
+        temp.pos1 = Position.EMPTY;
+    	temp.pos2 = Position.EMPTY;
     	for(int i=0; i< brokenline.order.size(); i++) {
     		temp2=brokenline.order.get(i);
     	    if(temp2==Position.UP) {
@@ -291,8 +299,7 @@ public class Logipix{
             Cell temp = GameGrid[(int) s.getFirst()][(int) s.getSecond()];
             arr.add(temp);
         }
-        Collections.sort(arr, new mycomparator2());
-        interrupting_Cells = new HashSet<>();
+        Collections.sort(arr, new mycomparator3());
         return arr;
     }
 
@@ -305,6 +312,7 @@ public class Logipix{
     }
 
     public ArrayList<BrokenLine> AllPaths(Cell cell, boolean keep_linked){
+        interrupting_Cells = new HashSet<>();
         ArrayList<LinkedList<Position>> allbrokenLines = recursive(cell,cell.clue, cell.clue-1, cell.clue, Position.EMPTY,keep_linked);
         ArrayList<BrokenLine> AllBrokenLines = new ArrayList<>();
         for(int i=0; i< allbrokenLines.size(); i++) {
@@ -328,7 +336,6 @@ public class Logipix{
                 return lines;
             }
         }else{
-            
             ArrayList<Cell> temp = disponible_voisins(cell,n,keep_linked);
             for(int i=0; i < temp.size(); i++){
                 Cell ff = temp.get(i);
@@ -385,150 +392,13 @@ public class Logipix{
     	return disponible;
     }
 
-    public void Backtracking2(){
-        Cell former;
-        Last_brokenLine = new Stack<>();
-       // findDeadEnds(orderedCells);
-        while(orderedCells.size()!=0){
-            interrupting_Cells = new HashSet<>();
-                
-
-            System.out.println("Tamanho da pilha: "+ Last_brokenLine.size());
-            former= orderedCells.peek();
-
-            if (former.linked) orderedCells.poll();
-            else{
-            
-               // System.out.println("Former clue " + former.clue +" Former counter "+ former.Counter);
-            System.out.println("Estou aqui!!! Com celula " + former.x + "," + former.y + " clue " + former.clue +" e counter " + former.Counter);
-                if(former.clue==1){
-                    former.linked=true;
-                    orderedCells.poll(); 
-                }else{
-                    if(former.Counter!=0){
-                        if((former.allbrokenlines.size()-1)<former.Counter){ //We need to check the things (Really?) 
-                            removebrokenLine(Last_brokenLine.peek());
-
-                            former.Counter=0;
-                            //System.out.println("PASSEI AQUI CARAIO ");
-                            Last_brokenLine.peek().last.Counter = 0;
-
-                            //System.out.println(LastBrokenLine.peek().get(LastBrokenLine.peek().size()-1).clue + " oi");
-                            orderedCells.addFirst(Last_brokenLine.peek().last);
-                            orderedCells.addFirst(Last_brokenLine.peek().init);
-                            
-                            //System.out.println("aqui2:"+former.x+","+former.y);
-                            Last_brokenLine.pop();
-                        }else{
-                            addBrokenLine(Last_brokenLine.push(former.allbrokenlines.get(former.Counter)));
-                            former.Counter++; 
-                            orderedCells.poll(); 
-                            orderedCells.remove(Last_brokenLine.peek().last);
-                            //System.out.println("aqui0:"+former.allbrokenlines.size());
-                        }
-                    }else{
-                        former.status_changing(false);
-                        former.allbrokenlines = AllPaths(former,false);
-                        former.status_changing(true);
-
-
-                        //System.out.println("Former clue = " + former.clue + " tamanho = " + former.allbrokenlines.size());
-                        if(former.allbrokenlines.size()==0){ //We need to check the things
-                            if (former.mandatory_cases.size() == 0){
-                                if (former.toujours_ocuppe){
-                                    orderedCells.poll();
-
-                                }  
-                                else{
-                               // System.out.println("Estou aqui!!! Com celula " + former.x + "," + former.y + " clue " + former.clue);
-                                //ArrayList<Cell> cases1 = cases_obligatories(former);
-                                //System.out.println("Passei pelo cases_obligatoires, que tem tamanho "+  cases1.size());
-                                
-                                ArrayList<Cell> cases2 = cells_to_removeLine();
-                                System.out.println("Passei pelo cells_to_removeLine, que tem tamanho " +cases2.size());
-                                //if (former.x == 0 && former.y == 1 ){
-                                  //  break;
-                                  // } 
-                                int reg = 0;
-                                //if (cases1.size() == 0) reg++;
-                                if (cases2.size() == 0) reg++;
-                                while (reg != 1){
-                                    removebrokenLine(Last_brokenLine.peek());
-                                    orderedCells.addFirst(Last_brokenLine.peek().last);
-                                    orderedCells.addFirst(Last_brokenLine.peek().init);
-                                    //if (cases1.size() != 0 && (Last_brokenLine.peek().last == cases1.get(0) || Last_brokenLine.peek().init == cases1.get(0))){
-                                      //  reg++;
-                                   // }
-                                    if ( cases2.size() != 0 && (Last_brokenLine.peek().last == cases2.get(0) || Last_brokenLine.peek().init == cases2.get(0))){
-                                        reg++;
-                                    }
-                                    if (reg != 1){
-                                        Last_brokenLine.peek().last.Counter = 0;
-                                        Last_brokenLine.peek().init.Counter = 0;
-                                    } 
-                                    Last_brokenLine.pop();
-                                    //System.out.println("Tamanho da pilha: "+ Last_brokenLine.size());
-                                    }
-
-                                }
-
-
-                            } else{
-                                
-                                ArrayList<Cell> cases2 = cells_to_removeLine();
-                                System.out.println("Passei pelo cells_to_removeLine, que tem tamanho " +cases2.size());
-                               // orderedCells.poll();
-
-                                int reg = 0;
-
-                                while (reg != 1){
-                                    removebrokenLine(Last_brokenLine.peek());
-                                    orderedCells.addFirst(Last_brokenLine.peek().last);
-                                    orderedCells.addFirst(Last_brokenLine.peek().init);
-                                    if (Last_brokenLine.peek().last == cases2.get(former.Counter_removeLine) || Last_brokenLine.peek().init == cases2.get(former.Counter_removeLine)){
-                                        reg++;
-                                        former.Counter_removeLine++;
-                                    }
-                                    if (reg != 1){
-                                        Last_brokenLine.peek().last.Counter = 0;
-                                        Last_brokenLine.peek().init.Counter = 0;
-                                    } 
-                                    Last_brokenLine.pop();
-                                    //System.out.println("Tamanho da pilha: "+ Last_brokenLine.size());
-
-                                }
-                               // orderedCells.addFirst(former);
-
-                            }
-
-                           /* removebrokenLine(Last_brokenLine.peek());
-                            orderedCells.addFirst(Last_brokenLine.peek().last);
-                            orderedCells.addFirst(Last_brokenLine.peek().init);
-                            
-                            //System.out.println("passei por aqui");
-                            Last_brokenLine.pop(); */
-                        }else{
-                            addBrokenLine(Last_brokenLine.push(former.allbrokenlines.get(former.Counter)));
-                            former.Counter++; 
-                            orderedCells.poll(); 
-                            orderedCells.remove(Last_brokenLine.peek().last);
-                            //System.out.println("ll"+former.allbrokenlines.size()+"("+former.x+","+former.y+")");
-                        }
-                    }
-                } 
-                }
-        }
-
-        
-    }
-
-
     public void Backtracking(){
     	Cell former;
         Last_brokenLine = new Stack<>();
         //findDeadEnds(orderedCells);
         while(orderedCells.size()!=0){
             former= orderedCells.peek();
+            //if(former.clue==4) break;
                // System.out.println("Former clue " + former.clue +" Former counter "+ former.Counter);
                 if(former.clue==1){
                     former.linked=true;
@@ -536,7 +406,7 @@ public class Logipix{
                 }else{
                     if(former.Counter!=0){
                         if((former.allbrokenlines.size()-1)<former.Counter){
-                            removebrokenLine(Last_brokenLine.peek());
+                            removebrokenLine(Last_brokenLine.peek()); a++;
 
                             former.Counter=0;
                             //System.out.println("PASSEI AQUI CARAIO ");
@@ -559,7 +429,7 @@ public class Logipix{
                         former.allbrokenlines = AllPaths(former,false);
                         //System.out.println("Former clue = " + former.clue + " tamanho = " + former.allbrokenlines.size());
                         if(former.allbrokenlines.size()==0){
-                            removebrokenLine(Last_brokenLine.peek());
+                            removebrokenLine(Last_brokenLine.peek()); a++;
                             orderedCells.addFirst(Last_brokenLine.peek().last);
                             orderedCells.addFirst(Last_brokenLine.peek().init);
                             
@@ -575,9 +445,108 @@ public class Logipix{
                     }
                 }
         }
+        System.out.println("a= "+a);
     }
 
+    private void GetBack(Cell former){
+        ArrayList<Cell> z = cells_to_removeLine();
+        if(z.size()==0){
+            removebrokenLine(Last_brokenLine.peek()); 
+            orderedCells.addFirst(Last_brokenLine.peek().last);
+            orderedCells.addFirst(Last_brokenLine.peek().init);
+                            
+                            //System.out.println("passei por aqui");
+            Last_brokenLine.pop();
+        }else{
+            int i =0, a=0, b= 0; 
+            while(true){
+                a = z.get(i).x;
+                b = z.get(i).y;
+                if(former.tested_returns.contains(new Pair <Integer,Integer>(a,b)) && GameGrid[a][b].allbrokenlines.size()==GameGrid[a][b].Counter){
+                    i++;
+                    if(i==z.size()){ i--; break; }
+                }else{
+                    break;
+                }
+            }
+            if(i==(z.size()-1) && z.size()>1) i--;
+            former.tested_returns.add(new Pair <Integer,Integer>(a,b));
+            Backtrack_Return(z.get(i), true);
+        }   
+    }
+
+    public void Backtracking2(){
+        Cell former;
+        Last_brokenLine = new Stack<>();
+        while(orderedCells.size()!=0){
+            former= orderedCells.peek();
+                if(former.clue==1){
+                    former.linked=true;
+                    orderedCells.poll(); 
+                }else{
+                    if(former.Counter!=0){
+                        if((former.allbrokenlines.size()-1)<former.Counter){
+                            removebrokenLine(Last_brokenLine.peek()); a++;
+                            former.Counter=0;
+                            Last_brokenLine.peek().last.Counter = 0;
+                            orderedCells.addFirst(Last_brokenLine.peek().last);
+                            orderedCells.addFirst(Last_brokenLine.peek().init);
+                            Last_brokenLine.pop();
+                        }else{
+                            addBrokenLine(Last_brokenLine.push(former.allbrokenlines.get(former.Counter)));
+                            former.Counter++; 
+                            former.Counter_entering_order = orderedCells.size();
+                            orderedCells.poll(); 
+                            orderedCells.remove(Last_brokenLine.peek().last);
+                        }
+                    }else{
+                        former.allbrokenlines = AllPaths(former,false);
+                        if(former.allbrokenlines.size()==0){
+                            GetBack(former);
+                            a++;
+                        }else{
+                            addBrokenLine(Last_brokenLine.push(former.allbrokenlines.get(former.Counter)));
+                            former.Counter_entering_order = orderedCells.size();
+                            former.Counter++; 
+                            orderedCells.poll(); 
+                            orderedCells.remove(Last_brokenLine.peek().last);
+                        }
+                    }
+                }
+        }
+         System.out.println("a= "+a);
+    }
+
+
+    public void Backtrack_Return(Cell destin, boolean keep_destin){
+        BrokenLine removedBL;
+        while(Last_brokenLine.peek().init != destin && Last_brokenLine.peek().last != destin){
+            removedBL = Last_brokenLine.pop();
+            removebrokenLine(removedBL);
+            removedBL.last.Counter=0;
+            removedBL.init.Counter=0;
+            orderedCells.addFirst(removedBL.last);
+            orderedCells.addFirst(removedBL.init);
+        }
+        removedBL = Last_brokenLine.pop();
+        removebrokenLine(removedBL);
+
+        if(removedBL.init == destin){
+            removedBL.last.Counter=0;
+            orderedCells.addFirst(removedBL.last);
+            orderedCells.addFirst(removedBL.init);
+            if(keep_destin==false) removedBL.init.Counter=0;
+        }else{
+            removedBL.init.Counter=0;
+            orderedCells.addFirst(removedBL.init);
+            orderedCells.addFirst(removedBL.last);
+            if(keep_destin==false) removedBL.last.Counter=0;
+        }
+     }
  }
+
+ 
+
 
 class mycomparator2 implements Comparator<Cell>
 {
@@ -592,7 +561,9 @@ class mycomparator3 implements Comparator<Cell>
 {
    @Override
    public int compare(Cell a, Cell b)
-   {
-      return b.clue - a.clue;
+   {  
+
+    return a.Counter_entering_order - b.Counter_entering_order;
+      
    }
 }
