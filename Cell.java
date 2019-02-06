@@ -9,6 +9,7 @@ public class Cell{
 	boolean toujours_ocuppe = false;
 	Pair<Integer,Integer> currentBrokenLine = new Pair(0,0);
 	ArrayList<Cell> mandatory_cases;
+	Cell origin;
 	int Counter_removeLine;
 
 
@@ -22,7 +23,7 @@ public class Cell{
 		this.clue = clue;
 		allbrokenlines = new ArrayList<>();
 		mandatory_cases = new ArrayList<>();
-		Counter_removeLine = 0;
+		origin = null;
 	}
 
 	public void status_changing (boolean b){

@@ -216,6 +216,7 @@ public class Logipix{
           ArrayList<Cell> arr = new ArrayList<>();
           HashSet<Pair> origins_brokenline = new HashSet<>();
 
+          cell.status_changing(false);
           ArrayList<BrokenLine> t=  AllPaths(cell, true);
           int size = t.size(), length = cell.clue; //length = cell.clue ?
           HashMap<Pair,Integer> casas = new HashMap<>();
@@ -236,6 +237,7 @@ public class Logipix{
                 Pair p2 =(Pair)mentry.getKey();
                 Cell temp = GameGrid[(int) p2.getFirst()][(int) p2.getSecond()];
                 temp.toujours_ocuppe = true;
+                if (temp != cell) temp.origin = cell;
                 cell.mandatory_cases.add(temp);
                 
                 if(temp.linked){
@@ -305,7 +307,7 @@ public class Logipix{
     }
 
     public ArrayList<BrokenLine> AllPaths(Cell cell, boolean keep_linked){
-        ArrayList<LinkedList<Position>> allbrokenLines = recursive(cell,cell.clue, cell.clue-1, cell.clue, Position.EMPTY,keep_linked);
+        ArrayList<LinkedList<Position>> allbrokenLines = recursive(cell,cell,cell.clue, cell.clue-1, cell.clue, Position.EMPTY,keep_linked);
         ArrayList<BrokenLine> AllBrokenLines = new ArrayList<>();
         for(int i=0; i< allbrokenLines.size(); i++) {
             allbrokenLines.get(i).removeFirst();
@@ -315,7 +317,7 @@ public class Logipix{
         return AllBrokenLines;
     }
 
-    private ArrayList<LinkedList<Position>> recursive(Cell cell, int clue, int n, int destiny, Position Lastrelative, boolean keep_linked){
+    private ArrayList<LinkedList<Position>> recursive(Cell orig, Cell cell, int clue, int n, int destiny, Position Lastrelative, boolean keep_linked){
         cell.temp=true;
         ArrayList<LinkedList<Position>> lines = new ArrayList<>();
         addInterruptionCells(cell,clue, n);
@@ -329,7 +331,7 @@ public class Logipix{
             }
         }else{
             
-            ArrayList<Cell> temp = disponible_voisins(cell,n,keep_linked);
+            ArrayList<Cell> temp = disponible_voisins(orig, cell,n,keep_linked);
             for(int i=0; i < temp.size(); i++){
                 Cell ff = temp.get(i);
                 Position relative = Position.EMPTY;
@@ -337,7 +339,7 @@ public class Logipix{
                 if(ff.x< cell.x) relative= Position.UP;
                 if(ff.y< cell.y) relative= Position.LEFT;
                 if(ff.y> cell.y) relative= Position.RIGHT;
-                ArrayList<LinkedList<Position>> intermediaire = recursive(ff,clue, n-1,destiny, relative, keep_linked);
+                ArrayList<LinkedList<Position>> intermediaire = recursive(orig, ff,clue, n-1,destiny, relative, keep_linked);
                //System.out.println(intermediaire.size());
                 if(intermediaire.size()>0) lines.addAll(intermediaire);
             }
@@ -351,32 +353,32 @@ public class Logipix{
         return lines;
     }
 
-    public ArrayList<Cell> disponible_voisins(Cell cell, int n, boolean keep_linked){
+    public ArrayList<Cell> disponible_voisins(Cell origin, Cell cell, int n, boolean keep_linked){
     	ArrayList<Cell> disponible = new ArrayList<>();
     	if((cell.y+1) < sizeX){
     		if((GameGrid[cell.x][cell.y+1].linked==false || keep_linked)  && GameGrid[cell.x][cell.y+1].temp==false
-                && GameGrid[cell.x][cell.y+1].toujours_ocuppe==false){
+                && (GameGrid[cell.x][cell.y+1].toujours_ocuppe==false || (n == 1 && (GameGrid[cell.x][cell.y+1].origin == null || GameGrid[cell.x][cell.y+1].origin == origin)))){
         			if(n==1) disponible.add(GameGrid[cell.x][cell.y+1]);
         			else{ if(GameGrid[cell.x][cell.y+1].clue==0) disponible.add(GameGrid[cell.x][cell.y+1]); }
     		}
     	}
     	if((cell.x+1) < sizeY){
     		if((GameGrid[cell.x+1][cell.y].linked==false || keep_linked) && GameGrid[cell.x+1][cell.y].temp==false
-                && GameGrid[cell.x+1][cell.y].toujours_ocuppe==false){
+                && (GameGrid[cell.x+1][cell.y].toujours_ocuppe==false || (n == 1 && (GameGrid[cell.x+1][cell.y].origin == null || GameGrid[cell.x+1][cell.y].origin == origin)))){
         			if(n==1) disponible.add(GameGrid[cell.x+1][cell.y]);
         			else{ if(GameGrid[cell.x+1][cell.y].clue==0) disponible.add(GameGrid[cell.x+1][cell.y]); }
     		}
     	}
     	if((cell.x-1) >= 0){
     		if((GameGrid[cell.x-1][cell.y].linked==false || keep_linked) && GameGrid[cell.x-1][cell.y].temp==false
-                && GameGrid[cell.x-1][cell.y].toujours_ocuppe==false){
+                && (GameGrid[cell.x-1][cell.y].toujours_ocuppe==false || (n == 1 && (GameGrid[cell.x-1][cell.y].origin == null || GameGrid[cell.x-1][cell.y].origin == origin)))){
         			if(n==1) disponible.add(GameGrid[cell.x-1][cell.y]);
         			else{ if(GameGrid[cell.x-1][cell.y].clue==0) disponible.add(GameGrid[cell.x-1][cell.y]); }
     		}
     	}
     	if((cell.y-1) >= 0){
     		if((GameGrid[cell.x][cell.y-1].linked==false || keep_linked) && GameGrid[cell.x][cell.y-1].temp==false
-                && GameGrid[cell.x][cell.y-1].toujours_ocuppe==false){
+                && (GameGrid[cell.x][cell.y-1].toujours_ocuppe==false || (n == 1 && (GameGrid[cell.x][cell.y-1].origin == null || GameGrid[cell.x][cell.y-1].origin == origin)))){
         			if(n==1) disponible.add(GameGrid[cell.x][cell.y-1]);
         			else{ if(GameGrid[cell.x][cell.y-1].clue==0) disponible.add(GameGrid[cell.x][cell.y-1]); }
     		}
@@ -429,7 +431,7 @@ public class Logipix{
                     }else{
                         former.status_changing(false);
                         former.allbrokenlines = AllPaths(former,false);
-                        former.status_changing(true);
+                        
 
 
                         //System.out.println("Former clue = " + former.clue + " tamanho = " + former.allbrokenlines.size());
@@ -523,12 +525,139 @@ public class Logipix{
     }
 
 
+    public void Backtracking3(){
+        Cell former;
+        Last_brokenLine = new Stack<>();
+        int n = 0;
+        //findDeadEnds(orderedCells);
+        while(orderedCells.size()!=0){
+            n++;
+            //System.out.println("Tamanho da pilha: "+ Last_brokenLine.size());
+            interrupting_Cells = new HashSet<>();
+            former= orderedCells.peek();
+            //System.out.println("Estou aqui!!! Com celula " + former.x + "," + former.y + " clue " + former.clue +" e counter " + former.Counter);
+           /* if (former.x == 11 && former.y == 6 && n > 5000) {
+                for (Cell x : former.mandatory_cases) System.out.println(x.x + " " + x.y);
+                break;
+            }  */
+            if (n > 500000) break;
+
+               // System.out.println("Former clue " + former.clue +" Former counter "+ former.Counter);
+                if(former.clue==1){
+                    former.linked=true;
+                    orderedCells.poll(); 
+                } else if (former.origin != null){
+                    orderedCells.poll();
+                }
+                else{
+                    if(former.Counter!=0){
+                        if((former.allbrokenlines.size()-1)<former.Counter){
+                            removebrokenLine(Last_brokenLine.peek());
+
+                            former.Counter=0;
+                            //System.out.println("PASSEI AQUI CARAIO ");
+                            Last_brokenLine.peek().last.Counter = 0;
+
+                            //System.out.println(LastBrokenLine.peek().get(LastBrokenLine.peek().size()-1).clue + " oi");
+                            orderedCells.addFirst(Last_brokenLine.peek().last);
+                            orderedCells.addFirst(Last_brokenLine.peek().init);
+                            
+                            //System.out.println("aqui2:"+former.x+","+former.y);
+                            Last_brokenLine.pop();                       
+                            
+                                ArrayList<Cell> cases1 = cases_obligatories(former);
+                                if (cases1.size() != 0) {
+
+                                    while (Last_brokenLine.peek().last != cases1.get(0) && Last_brokenLine.peek().init != cases1.get(0)){
+                                    removebrokenLine(Last_brokenLine.peek());
+                                    orderedCells.addFirst(Last_brokenLine.peek().last);
+                                    orderedCells.addFirst(Last_brokenLine.peek().init);
+                                    Last_brokenLine.peek().last.Counter = 0;
+                                    Last_brokenLine.peek().init.Counter = 0;
+                                    Last_brokenLine.pop();
+                                    //System.out.println("Tamanho da pilha: "+ Last_brokenLine.size());
+                                    //System.out.println("k");
+
+                                     }
+                        
+                                removebrokenLine(Last_brokenLine.peek());
+                                orderedCells.addFirst(Last_brokenLine.peek().last);
+                                orderedCells.addFirst(Last_brokenLine.peek().init);
+                                Last_brokenLine.peek().last.Counter = 0;
+                                Last_brokenLine.peek().init.Counter = 0;
+                                //System.out.println("passei por aqui");
+                                Last_brokenLine.pop();
+                                }
+                        }else{
+                            addBrokenLine(Last_brokenLine.push(former.allbrokenlines.get(former.Counter)));
+                            former.Counter++; 
+                            orderedCells.poll(); 
+                            orderedCells.remove(Last_brokenLine.peek().last);
+                            //System.out.println("aqui0:"+former.allbrokenlines.size());
+                        }
+                    }else{
+                        former.status_changing(false);
+                        former.allbrokenlines = AllPaths(former,false);
+                       
+                        //System.out.println("Former clue = " + former.clue + " tamanho = " + former.allbrokenlines.size());
+                        if(former.allbrokenlines.size()==0){
+                            former.Counter = 0;
+                           
+                            
+                                ArrayList<Cell> cases1 = cases_obligatories(former);
+                                if (cases1.size() != 0) {
+
+                                    while (Last_brokenLine.peek().last != cases1.get(0) && Last_brokenLine.peek().init != cases1.get(0)){
+                                    removebrokenLine(Last_brokenLine.peek());
+                                    orderedCells.addFirst(Last_brokenLine.peek().last);
+                                    orderedCells.addFirst(Last_brokenLine.peek().init);
+                                    Last_brokenLine.peek().last.Counter = 0;
+                                    Last_brokenLine.peek().init.Counter = 0;
+                                    Last_brokenLine.pop();
+                                    //System.out.println("Tamanho da pilha: "+ Last_brokenLine.size());
+                                    //System.out.println("k");
+
+                                     }
+                        
+                                removebrokenLine(Last_brokenLine.peek());
+                                orderedCells.addFirst(Last_brokenLine.peek().last);
+                                orderedCells.addFirst(Last_brokenLine.peek().init);
+                                Last_brokenLine.peek().last.Counter = 0;
+                                Last_brokenLine.peek().init.Counter = 0;
+                                //System.out.println("passei por aqui");
+                                Last_brokenLine.pop();
+                                } else{
+                                    removebrokenLine(Last_brokenLine.peek());
+                                    orderedCells.addFirst(Last_brokenLine.peek().last);
+                                    orderedCells.addFirst(Last_brokenLine.peek().init);
+                                    //Last_brokenLine.peek().last.Counter = 0;
+                                    //Last_brokenLine.peek().init.Counter = 0;
+                                    //System.out.println("passei por aqui");
+                                    Last_brokenLine.pop();
+
+                                }
+                            
+                        }else{
+                            addBrokenLine(Last_brokenLine.push(former.allbrokenlines.get(former.Counter)));
+                            former.Counter++; 
+                            orderedCells.poll(); 
+                            orderedCells.remove(Last_brokenLine.peek().last);
+                            //System.out.println("ll"+former.allbrokenlines.size()+"("+former.x+","+former.y+")");
+                        }
+                    }
+                }
+        }
+    }
+
+
     public void Backtracking(){
     	Cell former;
         Last_brokenLine = new Stack<>();
-        //findDeadEnds(orderedCells);
+        findDeadEnds(orderedCells);
         while(orderedCells.size()!=0){
             former= orderedCells.peek();
+            
+
                // System.out.println("Former clue " + former.clue +" Former counter "+ former.Counter);
                 if(former.clue==1){
                     former.linked=true;
