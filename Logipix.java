@@ -15,10 +15,8 @@ public class Logipix{
 	Stack<BrokenLine> Last_brokenLine;
     ArrayList<Cell> noVoisins;
     HashSet<Pair>  interrupting_Cells;
-    Boolean BackTracking_isReversed = false;
-    Stack<Cell> Potential_cells_to_remove;
-    Cell Current_failed=null;
-    boolean jump; 
+    Cell irreversible_point=null;
+    Stack<Cell> removedCells;
     int a=0;
 
 	int Counter=0, MemCounter;
@@ -27,7 +25,7 @@ public class Logipix{
 		OrderedCells = new ArrayList<>();
         Last_brokenLine = new Stack<>();
         interrupting_Cells = new HashSet<>();
-        Potential_cells_to_remove = new Stack<>();
+        removedCells = new Stack();
 		read(name);
 	}
 	private void read(String name){
@@ -220,9 +218,10 @@ public class Logipix{
 
     }
 
-    public ArrayList<Cell> cases_obligatories(Cell cell){
+    public ArrayList<Cell> complete_mandatory_links(Cell cell){
           ArrayList<Cell> arr = new ArrayList<>();
           HashSet<Pair> origins_brokenline = new HashSet<>();
+          Cell final_destiny =null;
 
           ArrayList<BrokenLine> t=  AllPaths(cell, true);
           int size = t.size(), length = cell.clue; //length = cell.clue ?
@@ -243,13 +242,40 @@ public class Logipix{
             if((int) mentry.getValue()==size){
                 Pair p2 =(Pair)mentry.getKey();
                 Cell temp = GameGrid[(int) p2.getFirst()][(int) p2.getSecond()];
-                temp.toujours_ocuppe = true;
-                cell.mandatory_cases.add(temp);
-                
+                if(temp!=cell){
+                    if(temp.mandatory_1!=null){
+                        if(temp.mandatory_2==null) temp.mandatory_2 = cell;
+
+                    }else{
+                       temp.mandatory_1 = cell; 
+                    }
+                    if(temp.clue!=0) {
+                        final_destiny = temp;
+                    }
+                }
                 if(temp.linked){
                     Cell origin = GameGrid[temp.currentBrokenLine.getFirst()][temp.currentBrokenLine.getSecond()];
                     origins_brokenline.add(new Pair <Integer,Integer>(origin.x,origin.y));
 
+                }
+            }
+        }
+        set = casas.entrySet();
+        iterator = set.iterator();
+        if(final_destiny!=null){
+            while(iterator.hasNext()){
+                Map.Entry mentry = (Map.Entry)iterator.next();
+                if((int) mentry.getValue()==size){
+                    Pair p2 =(Pair)mentry.getKey();
+                    Cell temp = GameGrid[(int) p2.getFirst()][(int) p2.getSecond()];
+                    if(temp!=final_destiny){
+                        if(temp.mandatory_1!=null){
+                            if(temp.mandatory_2==null) temp.mandatory_2 = final_destiny;
+
+                        }else{
+                           temp.mandatory_1 = final_destiny; 
+                        }
+                    }
                 }
             }
         }
@@ -313,7 +339,7 @@ public class Logipix{
 
     public ArrayList<BrokenLine> AllPaths(Cell cell, boolean keep_linked){
         interrupting_Cells = new HashSet<>();
-        ArrayList<LinkedList<Position>> allbrokenLines = recursive(cell,cell.clue, cell.clue-1, cell.clue, Position.EMPTY,keep_linked);
+        ArrayList<LinkedList<Position>> allbrokenLines = recursive(cell,cell, cell.clue, cell.clue-1, cell.clue, Position.EMPTY,keep_linked);
         ArrayList<BrokenLine> AllBrokenLines = new ArrayList<>();
         for(int i=0; i< allbrokenLines.size(); i++) {
             allbrokenLines.get(i).removeFirst();
@@ -323,7 +349,7 @@ public class Logipix{
         return AllBrokenLines;
     }
 
-    private ArrayList<LinkedList<Position>> recursive(Cell cell, int clue, int n, int destiny, Position Lastrelative, boolean keep_linked){
+    private ArrayList<LinkedList<Position>> recursive(Cell cell, Cell origin, int clue, int n, int destiny, Position Lastrelative, boolean keep_linked){
         cell.temp=true;
         ArrayList<LinkedList<Position>> lines = new ArrayList<>();
         addInterruptionCells(cell,clue, n);
@@ -336,7 +362,7 @@ public class Logipix{
                 return lines;
             }
         }else{
-            ArrayList<Cell> temp = disponible_voisins(cell,n,keep_linked);
+            ArrayList<Cell> temp = disponible_voisins(cell,origin,n,keep_linked);
             for(int i=0; i < temp.size(); i++){
                 Cell ff = temp.get(i);
                 Position relative = Position.EMPTY;
@@ -344,7 +370,7 @@ public class Logipix{
                 if(ff.x< cell.x) relative= Position.UP;
                 if(ff.y< cell.y) relative= Position.LEFT;
                 if(ff.y> cell.y) relative= Position.RIGHT;
-                ArrayList<LinkedList<Position>> intermediaire = recursive(ff,clue, n-1,destiny, relative, keep_linked);
+                ArrayList<LinkedList<Position>> intermediaire = recursive(ff,origin,clue, n-1,destiny, relative, keep_linked);
                //System.out.println(intermediaire.size());
                 if(intermediaire.size()>0) lines.addAll(intermediaire);
             }
@@ -358,38 +384,50 @@ public class Logipix{
         return lines;
     }
 
-    public ArrayList<Cell> disponible_voisins(Cell cell, int n, boolean keep_linked){
+    public ArrayList<Cell> disponible_voisins(Cell cell, Cell origin, int n, boolean keep_linked){
     	ArrayList<Cell> disponible = new ArrayList<>();
     	if((cell.y+1) < sizeX){
-    		if((GameGrid[cell.x][cell.y+1].linked==false || keep_linked)  && GameGrid[cell.x][cell.y+1].temp==false
-                && GameGrid[cell.x][cell.y+1].toujours_ocuppe==false){
-        			if(n==1) disponible.add(GameGrid[cell.x][cell.y+1]);
-        			else{ if(GameGrid[cell.x][cell.y+1].clue==0) disponible.add(GameGrid[cell.x][cell.y+1]); }
-    		}
+            Cell aux = GameGrid[cell.x][cell.y+1];
+    		fill(aux,origin,n,disponible,keep_linked);
     	}
     	if((cell.x+1) < sizeY){
-    		if((GameGrid[cell.x+1][cell.y].linked==false || keep_linked) && GameGrid[cell.x+1][cell.y].temp==false
-                && GameGrid[cell.x+1][cell.y].toujours_ocuppe==false){
-        			if(n==1) disponible.add(GameGrid[cell.x+1][cell.y]);
-        			else{ if(GameGrid[cell.x+1][cell.y].clue==0) disponible.add(GameGrid[cell.x+1][cell.y]); }
-    		}
+            Cell aux = GameGrid[cell.x+1][cell.y];
+    		fill(aux,origin,n,disponible,keep_linked);
     	}
     	if((cell.x-1) >= 0){
-    		if((GameGrid[cell.x-1][cell.y].linked==false || keep_linked) && GameGrid[cell.x-1][cell.y].temp==false
-                && GameGrid[cell.x-1][cell.y].toujours_ocuppe==false){
-        			if(n==1) disponible.add(GameGrid[cell.x-1][cell.y]);
-        			else{ if(GameGrid[cell.x-1][cell.y].clue==0) disponible.add(GameGrid[cell.x-1][cell.y]); }
-    		}
+            Cell aux = GameGrid[cell.x-1][cell.y];
+    		fill(aux,origin,n,disponible,keep_linked);
     	}
     	if((cell.y-1) >= 0){
-    		if((GameGrid[cell.x][cell.y-1].linked==false || keep_linked) && GameGrid[cell.x][cell.y-1].temp==false
-                && GameGrid[cell.x][cell.y-1].toujours_ocuppe==false){
-        			if(n==1) disponible.add(GameGrid[cell.x][cell.y-1]);
-        			else{ if(GameGrid[cell.x][cell.y-1].clue==0) disponible.add(GameGrid[cell.x][cell.y-1]); }
-    		}
+            Cell aux = GameGrid[cell.x][cell.y-1];
+    		fill(aux,origin,n,disponible,keep_linked);
     	}
-
     	return disponible;
+    }
+
+    private void fill(Cell aux,Cell origin, int n, ArrayList<Cell> disponible, boolean keep_linked){
+        if((aux.linked==false || keep_linked) && aux.temp==false){
+                if((aux.mandatory_1==null && aux.mandatory_2==null)){     //caso padarao
+                    if(n==1) disponible.add(aux);
+                    else{ if(aux.clue==0) disponible.add(aux); }
+                }else{    //celula ligada de alguma forma 
+                    if(aux.mandatory_1!=null && aux.mandatory_2!=null){            // se a potencial vizinha ja tem as duas pontas, verifica se a origem pode ser uma delas, aceitando
+                        if(aux.mandatory_1==origin ||  aux.mandatory_1==origin){
+                            if(n==1) disponible.add(aux);
+                            else{ if(aux.clue==0) disponible.add(aux); }    
+                        }
+                    }else{   // aceita o vizinho se a celula esta ligada com uma celula de clue compativel ou se o destino nao coincidir com origin
+                        if(aux.mandatory_1!=null && aux.mandatory_1.clue==origin.clue){
+                            if(n==1) disponible.add(aux);
+                            else{ if(aux.clue==0) disponible.add(aux); }  
+                        }
+                        if(aux.mandatory_2!=null && aux.mandatory_2.clue==origin.clue){
+                            if(n==1) disponible.add(aux);
+                            else{ if(aux.clue==0) disponible.add(aux); }  
+                        }
+                    }
+                }
+        }
     }
 
     public void Backtracking(){
@@ -454,24 +492,12 @@ public class Logipix{
             removebrokenLine(Last_brokenLine.peek()); 
             orderedCells.addFirst(Last_brokenLine.peek().last);
             orderedCells.addFirst(Last_brokenLine.peek().init);
-                            
-                            //System.out.println("passei por aqui");
             Last_brokenLine.pop();
         }else{
-            int i =0, a=0, b= 0; 
-            while(true){
-                a = z.get(i).x;
-                b = z.get(i).y;
-                if(former.tested_returns.contains(new Pair <Integer,Integer>(a,b)) && GameGrid[a][b].allbrokenlines.size()==GameGrid[a][b].Counter){
-                    i++;
-                    if(i==z.size()){ i--; break; }
-                }else{
-                    break;
-                }
-            }
-            if(i==(z.size()-1) && z.size()>1) i--;
-            former.tested_returns.add(new Pair <Integer,Integer>(a,b));
-            Backtrack_Return(z.get(i), true);
+           Backtrack_Return(z.get(0),true);
+            
+             
+            
         }   
     }
 
@@ -482,7 +508,8 @@ public class Logipix{
             former= orderedCells.peek();
                 if(former.clue==1){
                     former.linked=true;
-                    orderedCells.poll(); 
+                    irreversible_point = orderedCells.poll(); 
+                    irreversible_point.Counter_entering_order = orderedCells.size()+1;
                 }else{
                     if(former.Counter!=0){
                         if((former.allbrokenlines.size()-1)<former.Counter){
@@ -491,30 +518,101 @@ public class Logipix{
                             Last_brokenLine.peek().last.Counter = 0;
                             orderedCells.addFirst(Last_brokenLine.peek().last);
                             orderedCells.addFirst(Last_brokenLine.peek().init);
+
                             Last_brokenLine.pop();
                         }else{
-                            addBrokenLine(Last_brokenLine.push(former.allbrokenlines.get(former.Counter)));
+                            BrokenLine new_brokenLine = former.allbrokenlines.get(former.Counter);
                             former.Counter++; 
+                            update_irreversive_point(former,new_brokenLine);
+                            
+                            addBrokenLine(Last_brokenLine.push(new_brokenLine));
+
                             former.Counter_entering_order = orderedCells.size();
-                            orderedCells.poll(); 
+                            orderedCells.poll();   
+
+                            Last_brokenLine.peek().last.Counter_entering_order = orderedCells.size(); 
                             orderedCells.remove(Last_brokenLine.peek().last);
                         }
                     }else{
                         former.allbrokenlines = AllPaths(former,false);
                         if(former.allbrokenlines.size()==0){
-                            GetBack(former);
-                            a++;
+                            Cell a;
+                            Backtrack_Return(a=complete_mandatory_links(former).get(0), false);
+                            //System.out.println(a.x+","+a.y);
+                            former =  orderedCells.peek();
+                            former.allbrokenlines = AllPaths(former,false);
+                            complete_mandatory_links(former);
+                            //System.out.println("tamanho dos caminhos == " +former.allbrokenlines.size());
+                            BrokenLine new_brokenLine = former.allbrokenlines.get(0);        
+                            //addBrokenLine(Last_brokenLine.push(new_brokenLine));
+                            removebrokenLine(new_brokenLine);
+
+                            former.allbrokenlines = AllPaths(former,false);
+                            //System.out.println("tamanho dos caminhos == " +former.allbrokenlines.size());
+                            //addBrokenLine(former.allbrokenlines.get(0));
+                            GameGrid[13][19].allbrokenlines = AllPaths(GameGrid[13][19],false);
+                            //System.out.println("tamanho dos caminhos == " +GameGrid[13][19].allbrokenlines.size());
+                            //addBrokenLine(GameGrid[13][19].allbrokenlines.get(0));
+                            complete_mandatory_links(GameGrid[14][17]);
+                            complete_mandatory_links(GameGrid[13][19]);
+                            complete_mandatory_links(GameGrid[15][19]);
+
+                            Backtrack_Return(GameGrid[15][19], false);
+
+                            GameGrid[15][19].allbrokenlines = AllPaths(GameGrid[15][19],false);
+                            System.out.println("tamanho dos caminhos == " +GameGrid[15][19].allbrokenlines.size());
+                            addBrokenLine(GameGrid[15][19].allbrokenlines.get(0));
+
+                             //GetBack(former);
+                            break;
+                            //a++;
                         }else{
-                            addBrokenLine(Last_brokenLine.push(former.allbrokenlines.get(former.Counter)));
-                            former.Counter_entering_order = orderedCells.size();
+                            BrokenLine new_brokenLine = former.allbrokenlines.get(former.Counter);
                             former.Counter++; 
-                            orderedCells.poll(); 
+                            update_irreversive_point(former,new_brokenLine);
+
+                            addBrokenLine(Last_brokenLine.push(new_brokenLine));
+
+                            former.Counter_entering_order = orderedCells.size();
+                            orderedCells.poll();
+
+                            Last_brokenLine.peek().last.Counter_entering_order = orderedCells.size();
                             orderedCells.remove(Last_brokenLine.peek().last);
+
                         }
                     }
                 }
         }
-         System.out.println("a= "+a);
+        //GetBack(irreversible_point);
+        System.out.println("a= "+a);
+        System.out.println("Irreversible Point= "+ irreversible_point.x+ ","+ irreversible_point.y);
+        //System.out.println(GameGrid[10][0].mandatory_2.x+ "," + GameGrid[10][0].mandatory_2.y);
+         //System.out.println(irreversible_point.allbrokenlines.size());
+         //Backtrack_Return(irreversible_point,true);
+         
+         //irreversible_point= Last_brokenLine.peek().init;
+         //System.out.println("NextPoint= "+ irreversible_point.x+ ","+ irreversible_point.y);
+         //System.out.println(irreversible_point.allbrokenlines.size());
+         //System.out.println(irreversible_point.Counter);
+         //orderedCells.poll();
+         //System.out.println("NextPoint= "+ orderedCells.peek().x+ ","+ orderedCells.peek().y);
+         //System.out.println(AllPaths(orderedCells.peek(),false).size());
+    }
+
+    private void update_irreversive_point(Cell former, BrokenLine new_brokenLine){
+        if(former.Counter==former.allbrokenlines.size()){
+           if(Last_brokenLine.size()==0){
+                new_brokenLine.is_turning_point = true;
+                irreversible_point = former;
+                //complete_mandatory_links(former);
+           }else{
+                if(Last_brokenLine.peek().is_turning_point==true){
+                    new_brokenLine.is_turning_point = true;
+                    irreversible_point = former;
+                    //complete_mandatory_links(former);
+                }
+           }
+        }
     }
 
 
