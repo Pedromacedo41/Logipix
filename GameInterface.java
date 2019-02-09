@@ -22,8 +22,10 @@ public class GameInterface extends Application {
         Logipix logipix = new Logipix();
         long iniTime = System.nanoTime();
         String titulo;
-        logipix.initialize(titulo="InputFiles/TeaCup.txt");
+        logipix.initialize(titulo="InputFiles/Man.txt");
+        //logipix.findDeadEnds2(logipix.orderedCells);
         //logipix.example();
+        //logipix.pre_processing(logipix.orderedCells);
         logipix.Backtracking2();
         //logipix.Backtrack_Return(logipix.GameGrid[0][1],true);
         long endTime = System.nanoTime();
@@ -89,6 +91,7 @@ public class GameInterface extends Application {
 
                 if(logipix.GameGrid[i][j].linked) a.setFill(Color.AQUAMARINE);
                 if(logipix.GameGrid[i][j].mandatory_1!=null || logipix.GameGrid[i][j].mandatory_2!=null) a.setFill(Color.YELLOW);
+                if(logipix.GameGrid[i][j].is_irreversible) a.setFill(Color.RED);
 
                 if(logipix.GameGrid[i][j].linked){
                     

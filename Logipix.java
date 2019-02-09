@@ -17,6 +17,8 @@ public class Logipix{
     HashSet<Pair>  interrupting_Cells;
     Cell irreversible_point=null;
     Stack<Cell> removedCells;
+    int size_of_paths=0;
+    Cell lastPiece=null;
     int a=0;
 
 	int Counter=0, MemCounter;
@@ -60,6 +62,7 @@ public class Logipix{
     	Cell temp =  brokenline.init;
     	Position temp2;
     	temp.linked = true;
+        if(brokenline.is_turning_point) temp.is_irreversible=true;
         temp.currentBrokenLine.setFirst(brokenline.init.x);
         temp.currentBrokenLine.setSecond(brokenline.init.y);
 
@@ -74,6 +77,7 @@ public class Logipix{
                 temp.currentBrokenLine.setFirst(brokenline.init.x);
                 temp.currentBrokenLine.setSecond(brokenline.init.y);
 
+                if(brokenline.is_turning_point) temp.is_irreversible=true;
     	    	if(i<(brokenline.order.size()-1)) temp.pos1 = brokenline.order.get(i+1);
                 if(brokenline.order.size()-1==i) brokenline.last=temp; 
     	    }
@@ -83,6 +87,7 @@ public class Logipix{
                 temp.currentBrokenLine.setFirst(brokenline.init.x);
                 temp.currentBrokenLine.setSecond(brokenline.init.y);
 
+                if(brokenline.is_turning_point) temp.is_irreversible=true;
     	    	if(i<(brokenline.order.size()-1)) temp.pos1 = brokenline.order.get(i+1);
                 if(brokenline.order.size()-1==i) brokenline.last=temp;
     	    }
@@ -93,6 +98,7 @@ public class Logipix{
                 temp.currentBrokenLine.setFirst(brokenline.init.x);
                 temp.currentBrokenLine.setSecond(brokenline.init.y); 
 
+                if(brokenline.is_turning_point) temp.is_irreversible=true;
     	    	if(i<(brokenline.order.size()-1)) temp.pos1 = brokenline.order.get(i+1);
                 if(brokenline.order.size()-1==i) brokenline.last=temp;
     	    }
@@ -103,6 +109,7 @@ public class Logipix{
                 temp.currentBrokenLine.setFirst(brokenline.init.x);
                 temp.currentBrokenLine.setSecond(brokenline.init.y); 
 
+                if(brokenline.is_turning_point) temp.is_irreversible=true;
     	    	if(i<(brokenline.order.size()-1)) temp.pos1 = brokenline.order.get(i+1);
                 if(brokenline.order.size()-1==i) brokenline.last=temp;
     	    }
@@ -191,30 +198,47 @@ public class Logipix{
         }
     }
 
-    public void example(){
-        ArrayList<BrokenLine> t = AllPaths(GameGrid[11][0],false);
-    	addBrokenLine((Last_brokenLine.push(t.get(0))));
-        interrupting_Cells = new HashSet<>();
-
-        ArrayList<BrokenLine> t5 = AllPaths(GameGrid[10][5],false);
-        addBrokenLine((Last_brokenLine.push(t5.get(0))));
-        interrupting_Cells = new HashSet<>();
-
-        ArrayList<BrokenLine> t6 = AllPaths(GameGrid[11][6],false);
-        addBrokenLine((Last_brokenLine.push(t6.get(22))));
-        interrupting_Cells = new HashSet<>();
-
-        ArrayList<BrokenLine> t2 = AllPaths(GameGrid[9][2],false);
-        //tentativa que vai falhar
-        System.out.println(t2.size());
-        if(t2.size()==0){
-            ArrayList<Cell> cellstoremove= cells_to_removeLine();
-            System.out.println(cellstoremove.size());
-            for(int i =0; i < cellstoremove.size(); i++){
-                System.out.println("Cell("+cellstoremove.get(i).x+","+cellstoremove.get(i).y+")");
+//preprocesing 
+    public void pre_processing(LinkedList<Cell> cells){
+        int i =0;
+        System.out.println("socorro1");
+        while(i < cells.size()){
+            Cell x = cells.get(i);
+            if(x.clue==1){
+                x.linked=true;
+                cells.remove(i);
+                continue;
             }
+            else{
+                complete_mandatory_links(x);
+                x.previous_priority = size_of_paths; 
+                if(lastPiece!=null){
+                    lastPiece.previous_priority= AllPaths(lastPiece,false).size();
+                    if(x.previous_priority < lastPiece.previous_priority) cells.remove(lastPiece);
+                    else{
+                        cells.remove(i);
+                        i--;
+                    }
+                    lastPiece=null;
+                }
+            }
+            i++;
         }
-    
+        Collections.sort(cells, new mycomparator5());  
+    }
+
+    public void example(){
+        complete_mandatory_links(GameGrid[2][7]);
+        System.out.println("man1: "+GameGrid[2][6].mandatory_1.x + ","+ GameGrid[2][6].mandatory_1.y);
+        System.out.println("man2: "+GameGrid[2][6].mandatory_2.x + ","+ GameGrid[2][6].mandatory_2.y);
+        //complete_mandatory_links(GameGrid[2][7]);
+        //complete_mandatory_links(GameGrid[4][20]);
+        //complete_mandatory_links(GameGrid[0][6]);
+        //complete_mandatory_links(GameGrid[20][5]);
+        //complete_mandatory_links(GameGrid[20][6]);
+        //complete_mandatory_links(GameGrid[19][6]);
+        System.out.println("Tamanho==" +(GameGrid[2][5].allbrokenlines=AllPaths(GameGrid[2][5],false)).size());
+        //addBrokenLine(GameGrid[6][22].allbrokenlines.get(0));
 
     }
 
@@ -222,8 +246,10 @@ public class Logipix{
           ArrayList<Cell> arr = new ArrayList<>();
           HashSet<Pair> origins_brokenline = new HashSet<>();
           Cell final_destiny =null;
+          size_of_paths=0;
 
           ArrayList<BrokenLine> t=  AllPaths(cell, true);
+          size_of_paths = t.size();
           int size = t.size(), length = cell.clue; //length = cell.clue ?
           HashMap<Pair,Integer> casas = new HashMap<>();
           for(int i=0; i < size; i++){
@@ -244,13 +270,15 @@ public class Logipix{
                 Cell temp = GameGrid[(int) p2.getFirst()][(int) p2.getSecond()];
                 if(temp!=cell){
                     if(temp.mandatory_1!=null){
-                        if(temp.mandatory_2==null) temp.mandatory_2 = cell;
-
+                       temp.mandatory_2 = cell;
+                       if(temp.clue!=0) temp.mandatory_1=null;
                     }else{
                        temp.mandatory_1 = cell; 
+                       if(temp.clue!=0) temp.mandatory_2=null;
                     }
                     if(temp.clue!=0) {
                         final_destiny = temp;
+                        lastPiece= temp;
                     }
                 }
                 if(temp.linked){
@@ -260,20 +288,23 @@ public class Logipix{
                 }
             }
         }
-        set = casas.entrySet();
-        iterator = set.iterator();
         if(final_destiny!=null){
-            while(iterator.hasNext()){
-                Map.Entry mentry = (Map.Entry)iterator.next();
-                if((int) mentry.getValue()==size){
-                    Pair p2 =(Pair)mentry.getKey();
-                    Cell temp = GameGrid[(int) p2.getFirst()][(int) p2.getSecond()];
-                    if(temp!=final_destiny){
-                        if(temp.mandatory_1!=null){
-                            if(temp.mandatory_2==null) temp.mandatory_2 = final_destiny;
-
-                        }else{
-                           temp.mandatory_1 = final_destiny; 
+            set = casas.entrySet();
+            iterator = set.iterator();
+            if(final_destiny!=null){
+                while(iterator.hasNext()){
+                    Map.Entry mentry = (Map.Entry)iterator.next();
+                    if((int) mentry.getValue()==size){
+                        Pair p2 =(Pair)mentry.getKey();
+                        Cell temp = GameGrid[(int) p2.getFirst()][(int) p2.getSecond()];
+                        if(temp!=final_destiny){
+                            if(temp.mandatory_1!=null){
+                                temp.mandatory_2 = final_destiny;
+                                if(temp.clue!=0) temp.mandatory_1=null;
+                            }else{
+                               temp.mandatory_1 = final_destiny; 
+                               if(temp.clue!=0) temp.mandatory_2=null;
+                            }
                         }
                     }
                 }
@@ -286,10 +317,11 @@ public class Logipix{
             Cell temp = GameGrid[(int) s.getFirst()][(int) s.getSecond()];
             arr.add(temp);
         }
-        Collections.sort(arr, new mycomparator2());
+        Collections.sort(arr, new mycomparator4());
         //interrupting_Cells = new HashSet<>();
         return arr;
     }
+
 
     private ArrayList<Cell> fill_noVoisins(Cell cell,int clue, int n){
         ArrayList<Cell> disponible = new ArrayList<>();
@@ -356,10 +388,24 @@ public class Logipix{
         if(n==0){
             cell.temp=false;
             if(cell.clue==destiny){
-                LinkedList<Position> last = new LinkedList<>();
-                last.add(Lastrelative);
-                lines.add((last));
-                return lines;
+                if(cell.mandatory_1!=null &&cell.mandatory_1==origin){
+                        LinkedList<Position> last = new LinkedList<>();
+                        last.add(Lastrelative);
+                        lines.add((last));
+                        return lines;
+                }
+                if(cell.mandatory_2!=null && cell.mandatory_2==origin){
+                        LinkedList<Position> last = new LinkedList<>();
+                        last.add(Lastrelative);
+                        lines.add((last));
+                        return lines;
+                }
+                if(cell.mandatory_1==null && cell.mandatory_2==null){
+                    LinkedList<Position> last = new LinkedList<>();
+                    last.add(Lastrelative);
+                    lines.add((last));
+                    return lines;
+                }
             }
         }else{
             ArrayList<Cell> temp = disponible_voisins(cell,origin,n,keep_linked);
@@ -406,13 +452,13 @@ public class Logipix{
     }
 
     private void fill(Cell aux,Cell origin, int n, ArrayList<Cell> disponible, boolean keep_linked){
-        if((aux.linked==false || keep_linked) && aux.temp==false){
+        if((aux.linked==false || keep_linked) && aux.temp==false && aux.is_irreversible==false){
                 if((aux.mandatory_1==null && aux.mandatory_2==null)){     //caso padarao
                     if(n==1) disponible.add(aux);
                     else{ if(aux.clue==0) disponible.add(aux); }
                 }else{    //celula ligada de alguma forma 
                     if(aux.mandatory_1!=null && aux.mandatory_2!=null){            // se a potencial vizinha ja tem as duas pontas, verifica se a origem pode ser uma delas, aceitando
-                        if(aux.mandatory_1==origin ||  aux.mandatory_1==origin){
+                        if(aux.mandatory_1==origin ||  aux.mandatory_2==origin){
                             if(n==1) disponible.add(aux);
                             else{ if(aux.clue==0) disponible.add(aux); }    
                         }
@@ -433,7 +479,7 @@ public class Logipix{
     public void Backtracking(){
     	Cell former;
         Last_brokenLine = new Stack<>();
-        //findDeadEnds(orderedCells);
+        pre_processing(orderedCells);
         while(orderedCells.size()!=0){
             former= orderedCells.peek();
             //if(former.clue==4) break;
@@ -487,23 +533,42 @@ public class Logipix{
     }
 
     private void GetBack(Cell former){
-        ArrayList<Cell> z = cells_to_removeLine();
-        if(z.size()==0){
-            removebrokenLine(Last_brokenLine.peek()); 
-            orderedCells.addFirst(Last_brokenLine.peek().last);
-            orderedCells.addFirst(Last_brokenLine.peek().init);
-            Last_brokenLine.pop();
+        ArrayList<Cell> z = new ArrayList<>();
+        //cells_to_removeLine();
+        ArrayList<Cell> z2 =  complete_mandatory_links(former);
+        if(z2.size()==0){
+            if(z.size()==0){
+                removebrokenLine(Last_brokenLine.peek()); 
+                orderedCells.addFirst(Last_brokenLine.peek().last);
+                orderedCells.addFirst(Last_brokenLine.peek().init);
+                Last_brokenLine.pop();
+            }else{
+                 int i =0, a=0, b= 0; 
+                 while(true){
+                    a = z.get(i).x;
+                    b = z.get(i).y;
+                    if(former.tested_returns.contains(new Pair <Integer,Integer>(a,b)) && GameGrid[a][b].allbrokenlines.size()==GameGrid[a][b].Counter){
+                        i++;
+                        if(i==z.size()){ i--; break; }
+                    }else{
+                        break;
+                    }
+                }
+                //if(i==(z.size()-1) && z.size()>1) i--;
+                former.tested_returns.add(new Pair <Integer,Integer>(a,b));
+                Backtrack_Return(z.get(0), true);
+                complete_mandatory_links(orderedCells.peek());
+            }
         }else{
-           Backtrack_Return(z.get(0),true);
-            
-             
-            
+           Backtrack_Return(z2.get(0),false);
+           complete_mandatory_links(orderedCells.peek());
         }   
     }
 
     public void Backtracking2(){
         Cell former;
         Last_brokenLine = new Stack<>();
+        pre_processing(orderedCells);
         while(orderedCells.size()!=0){
             former= orderedCells.peek();
                 if(former.clue==1){
@@ -513,6 +578,10 @@ public class Logipix{
                 }else{
                     if(former.Counter!=0){
                         if((former.allbrokenlines.size()-1)<former.Counter){
+                            if(Last_brokenLine.size()==0) {
+                                System.out.println("GAME OVER. No match combination");
+                                break;
+                            }
                             removebrokenLine(Last_brokenLine.peek()); a++;
                             former.Counter=0;
                             Last_brokenLine.peek().last.Counter = 0;
@@ -536,35 +605,11 @@ public class Logipix{
                     }else{
                         former.allbrokenlines = AllPaths(former,false);
                         if(former.allbrokenlines.size()==0){
-                            Cell a;
-                            Backtrack_Return(a=complete_mandatory_links(former).get(0), false);
-                            //System.out.println(a.x+","+a.y);
-                            former =  orderedCells.peek();
-                            former.allbrokenlines = AllPaths(former,false);
-                            complete_mandatory_links(former);
-                            //System.out.println("tamanho dos caminhos == " +former.allbrokenlines.size());
-                            BrokenLine new_brokenLine = former.allbrokenlines.get(0);        
-                            //addBrokenLine(Last_brokenLine.push(new_brokenLine));
-                            removebrokenLine(new_brokenLine);
-
-                            former.allbrokenlines = AllPaths(former,false);
-                            //System.out.println("tamanho dos caminhos == " +former.allbrokenlines.size());
-                            //addBrokenLine(former.allbrokenlines.get(0));
-                            GameGrid[13][19].allbrokenlines = AllPaths(GameGrid[13][19],false);
-                            //System.out.println("tamanho dos caminhos == " +GameGrid[13][19].allbrokenlines.size());
-                            //addBrokenLine(GameGrid[13][19].allbrokenlines.get(0));
-                            complete_mandatory_links(GameGrid[14][17]);
-                            complete_mandatory_links(GameGrid[13][19]);
-                            complete_mandatory_links(GameGrid[15][19]);
-
-                            Backtrack_Return(GameGrid[15][19], false);
-
-                            GameGrid[15][19].allbrokenlines = AllPaths(GameGrid[15][19],false);
-                            System.out.println("tamanho dos caminhos == " +GameGrid[15][19].allbrokenlines.size());
-                            addBrokenLine(GameGrid[15][19].allbrokenlines.get(0));
-
-                             //GetBack(former);
+                            System.out.println("former ="+ former.x+ ","+ former.y);
+                            //complete_mandatory_links(former);
+                            System.out.println("Tamanho==" +(GameGrid[0][10].allbrokenlines=AllPaths(GameGrid[0][10],false)).size());
                             break;
+                            //GetBack(former);
                             //a++;
                         }else{
                             BrokenLine new_brokenLine = former.allbrokenlines.get(former.Counter);
@@ -585,7 +630,7 @@ public class Logipix{
         }
         //GetBack(irreversible_point);
         System.out.println("a= "+a);
-        System.out.println("Irreversible Point= "+ irreversible_point.x+ ","+ irreversible_point.y);
+        //System.out.println("Irreversible Point= "+ irreversible_point.x+ ","+ irreversible_point.y);
         //System.out.println(GameGrid[10][0].mandatory_2.x+ "," + GameGrid[10][0].mandatory_2.y);
          //System.out.println(irreversible_point.allbrokenlines.size());
          //Backtrack_Return(irreversible_point,true);
@@ -604,12 +649,10 @@ public class Logipix{
            if(Last_brokenLine.size()==0){
                 new_brokenLine.is_turning_point = true;
                 irreversible_point = former;
-                //complete_mandatory_links(former);
            }else{
                 if(Last_brokenLine.peek().is_turning_point==true){
                     new_brokenLine.is_turning_point = true;
                     irreversible_point = former;
-                    //complete_mandatory_links(former);
                 }
            }
         }
@@ -662,6 +705,28 @@ class mycomparator3 implements Comparator<Cell>
    {  
 
     return a.Counter_entering_order - b.Counter_entering_order;
+      
+   }
+}
+
+class mycomparator4 implements Comparator<Cell>
+{
+   @Override
+   public int compare(Cell a, Cell b)
+   {  
+
+    return b.Counter_entering_order - a.Counter_entering_order;
+      
+   }
+}
+
+class mycomparator5 implements Comparator<Cell>
+{
+   @Override
+   public int compare(Cell a, Cell b)
+   {  
+
+    return 5000*(a.previous_priority - b.previous_priority) + (b.clue-a.clue);
       
    }
 }
