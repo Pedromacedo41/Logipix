@@ -9,9 +9,11 @@ public class Cell{
 	boolean linked = false;
 	boolean is_irreversible=false;
 	Pair<Integer,Integer> currentBrokenLine = new Pair(0,0);
+	Cell currentBrokenLineTail = null;
 	Cell mandatory_1=null, mandatory_2=null;
 	int Counter_entering_order=0;
 	HashSet<Pair> tested_returns;
+	HashSet<Cell> forbidden_destinies;
 
 	ArrayList<BrokenLine> allbrokenlines;
 	Position pos1 = Position.EMPTY, pos2 = Position.EMPTY;
@@ -22,6 +24,7 @@ public class Cell{
 		this.clue = clue;
 		allbrokenlines = new ArrayList<>();
 		tested_returns = new HashSet<>();
+		forbidden_destinies = new HashSet<>();
 	}
 
 	public int hashCode() {

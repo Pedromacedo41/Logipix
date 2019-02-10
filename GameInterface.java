@@ -4,63 +4,85 @@ import javafx.scene.layout.*;
 import javafx.scene.shape.*;
 import javafx.scene.text.*;
 import javafx.scene.paint.*;
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 import java.io.FileNotFoundException; 
 import java.io.IOException;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import java.lang.Object;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 
 public class GameInterface extends Application {
 
     int square=26;
     int cont=0;
+    static String name;
+    static int option;
+    double BackTrackingtime;
 
     @Override
     public void start(Stage stage) {
         Logipix logipix = new Logipix();
-        long iniTime = System.nanoTime();
         String titulo;
-        logipix.initialize(titulo="InputFiles/Man.txt");
-        //logipix.findDeadEnds2(logipix.orderedCells);
+        logipix.initialize(titulo=("InputFiles/"+name+".txt"));
+        long iniTime = System.nanoTime();
+        if(option==1) logipix.Backtracking(option);
+        if(option==3) logipix.Backtracking2();
         //logipix.example();
-        //logipix.pre_processing(logipix.orderedCells);
-        logipix.Backtracking2();
-        //logipix.Backtrack_Return(logipix.GameGrid[0][1],true);
+        //logipix.pre_processing();
         long endTime = System.nanoTime();
-        System.out.println("Total running time : " + (endTime - iniTime)/(1.0*1000000000) + " seconds");
 
-        Scene scene = new Scene(generateGrid(logipix), logipix.sizeX*square, logipix.sizeY*square+27);
+        BackTrackingtime = (endTime - iniTime)/(1.0*1000000000);
+        GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+        int width = gd.getDisplayMode().getWidth();
+        int height = gd.getDisplayMode().getHeight();
+        int X= logipix.sizeX*square, Y = logipix.sizeY*square;
+        if(X>width){
+            square=(int) 85*square*width/X/100;
+        }
+        if(Y>height){
+            square=(int) 85*square*height/Y/100;
+        }
+
+        Scene scene = new Scene(generateGrid(logipix), logipix.sizeX*square, logipix.sizeY*square+12);
         stage.setTitle("Logipix "+logipix.sizeX+"x"+logipix.sizeY+ "  "+titulo);
         stage.setScene(scene);
+
+
         stage.show();
     }
 
     public static void main(String[] args) throws FileNotFoundException {
+        name = args[0];
+        option = Integer.parseInt(args[1]);
+
         launch();
     }
 
-    private StackPane generateGrid(Logipix logipix){
-        Button btn = new Button();
-        btn.setText("Next");
-        VBox m = new VBox();
-        m.getChildren().add(btn);
-        btn.setOnAction(new EventHandler<ActionEvent>() {
-                public void handle(ActionEvent event) {
-                    
-                    if(logipix.Last_brokenLine.size()>0){
-                         logipix.removebrokenLine(logipix.Last_brokenLine.pop());
-                    }
-                    m.getChildren().remove(1);
-                    //logipix.example(cont());
-                    m.getChildren().add(draw(logipix)); 
-            }
-        });
-        m.getChildren().add(draw(logipix)); 
+    private GridPane generateGrid(Logipix logipix){
+        Text T1 = new Text("Pre-processing(s) : "+ logipix.pre_processing_time+ "  ");
+        T1.setStyle("-fx-font: "+ 10+" arial; -fx-padding: 10;");
 
-        StackPane prin = new StackPane(m);
-        return prin;
+        Text T2 = new Text("BackTracking returns: "+logipix.a);
+        T2.setFont(Font.font("Verdana", FontWeight.BOLD, 10));
+        T2.setFill(Color.GREEN);
+
+        Text T3 = new Text( "BackTracking Runtime: " + BackTrackingtime+ "s   ");
+        T3.setStyle("-fx-font: "+ 10+" arial;");
+        T3.setFill(Color.BLUE);
+
+        HBox j=  new HBox(T1,T3,T2);
+        VBox m = new VBox();
+        m.getChildren().add(j);
+        m.getChildren().add(draw(logipix)); 
+        GridPane gridpane = new GridPane();
+        gridpane.add(m,0,0);
+        return gridpane;
     }
 
     private int cont(){
@@ -79,6 +101,7 @@ public class GameInterface extends Application {
                     T= new Text(" ");
                 }else{
                     T= new Text(Integer.toString(logipix.GameGrid[i][j].clue));
+                    T.setStyle("-fx-font: "+ 12*square/26+" arial;");
                 }
                  
                 T.setTextAlignment(TextAlignment.CENTER);
@@ -89,9 +112,9 @@ public class GameInterface extends Application {
                 a.setStroke(Color.BLACK);
                 a.setFill(Color.WHITE);
 
-                if(logipix.GameGrid[i][j].linked) a.setFill(Color.AQUAMARINE);
-                if(logipix.GameGrid[i][j].mandatory_1!=null || logipix.GameGrid[i][j].mandatory_2!=null) a.setFill(Color.YELLOW);
-                if(logipix.GameGrid[i][j].is_irreversible) a.setFill(Color.RED);
+                if(logipix.GameGrid[i][j].linked) a.setFill(Color.RED);
+                //if(logipix.GameGrid[i][j].mandatory_1!=null || logipix.GameGrid[i][j].mandatory_2!=null) a.setFill(Color.YELLOW);
+                //if(logipix.GameGrid[i][j].is_irreversible) a.setFill(Color.RED);
 
                 if(logipix.GameGrid[i][j].linked){
                     
